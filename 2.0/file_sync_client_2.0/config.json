@@ -1,0 +1,11 @@
+{
+  "version" : "2.0",
+  "address" : "localhost",
+  "port" : 88,
+  "timeout" : 15000,
+  "file" : [
+    { "id" : 1, "path" : "D:/Temp/test.xml", "key" : "12345" ,"interval" : 15000, "timeout" : 17000},
+    { "id" : 3, "path" : "D:/Temp/testtest.xml", "key" : "12345" },
+	{ "id" : 123, "path" : "D:/Temp/test2.xml", "key" : "hamtalo" }
+  ]
+}
