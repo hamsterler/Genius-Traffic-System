@@ -14,6 +14,7 @@ public class ClientFileThread extends java.lang.Thread
 {       
     public ClientFileThread(Client client){
         this.client = client;
+        this._timeout = this.client.getTimeout();
     }
 
 
@@ -23,9 +24,11 @@ public class ClientFileThread extends java.lang.Thread
 	private String _key = "";
     private String _error = "";
     private Client client = null;
+    private int _interval = 1000;
+    private int _timeout = -1;
+
     private boolean isMessageCorrect = false;
-    public Encode encode = new Encode(); 
-    private int _interval = 1000; 
+    public Encode encode = new Encode();  
     private Socket _socket = null;
     public boolean isFinish = false;
     OutputStream _out = null;
@@ -53,7 +56,15 @@ public class ClientFileThread extends java.lang.Thread
     public boolean load(alisa.json.Object obj){ 
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
-        this._key = getStringJson(obj, "key");           
+        this._key = getStringJson(obj, "key");         
+        
+        int timeout = getIntegerJson(obj, "timeout");
+        if(timeout > 0) 
+            this._timeout = timeout;
+        int interval = getIntegerJson(obj, "interval");
+        if(interval > 0 )
+            this._interval = interval; 
+
         if(this._id == -1 || this._path == null || this._key == null){
             this._error = "Null value Attribute in ClientFileThread.load()";
             return false;        
@@ -215,8 +226,8 @@ public class ClientFileThread extends java.lang.Thread
     private boolean _connect(){
         try{
             this._socket = new Socket(this.client.getAddress(), this.client.getPort());
-            this._socket.setSoTimeout(this.client.getTimeout());
-            System.out.println("File-" + this._id + ": setSoTimeout = " + this.client.getTimeout());
+            this._socket.setSoTimeout(this._timeout);
+
             this._in = this._socket.getInputStream();
             this._out = this._socket.getOutputStream();
         } 
@@ -270,21 +281,29 @@ public class ClientFileThread extends java.lang.Thread
 
 //----------------------get value for object--------------------------
     public String getStringJson(alisa.json.Object obj, String name){
-        alisa.json.Data text = obj.findData(name);
-        if (text == null || !text.isString()){
-            this._error = "Error on <ClientFileThread> " + name; 
+        try{
+            alisa.json.Data text = obj.findData(name);
+            if (text == null || !text.isString()){
+                this._error = "Error on <ClientFileThread> " + name; 
+                return null;
+            }
+            return text.getString();
+        } catch(NullPointerException e){
             return null;
         }
-        return text.getString();
     }
 
     public int getIntegerJson(alisa.json.Object obj, String name){
-        alisa.json.Data text = obj.findData(name);
-        if (text == null || !text.isInteger()){
-            this._error = "Error on <ClientFileThread> " + name; 
+        try{
+            alisa.json.Data text = obj.findData(name);
+            if (text == null || !text.isInteger()){
+                this._error = "Error on <ClientFileThread> " + name; 
+                return -1;
+            }
+            return text.getInteger();
+        } catch(NullPointerException e){
             return -1;
         }
-        return text.getInteger();
     }   
 //--------------------------------------------------------------------
 
