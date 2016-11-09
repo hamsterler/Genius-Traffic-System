@@ -94,10 +94,7 @@ public class ClientFileThread extends java.lang.Thread
 
                 //CRC data >> encrypt (data+crc) >> pack with id and start&end byte = [255][HI_ID][LOW_ID][..Encrypted Data&crc][254]
                 byte[] message = packAllData1(data); 
-                
-                //Connect
-                // loopConnect();
-
+               
                 //sendmessage
                 try{
                     // int missing_message_count = 0;
@@ -111,21 +108,16 @@ public class ClientFileThread extends java.lang.Thread
                     }    
                     System.out.println("File-" + this._id + " Sending Success!!");
                 
-                } catch (IOException ex){ 
+                } catch (IOException ex){  
                     System.out.println("File-" + this._id + ": Server was closed.");
                     this.isFinish = true;                    
                     return;
                 } 
-
-                // _disconnect();
                 
             } catch (IOException e){
                 System.out.println("File-" + this._id + " | " + e.getMessage());
             }
-            
-//            if(this._socket.isClosed())
-//                return;
-            //sleep 
+
             try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
         }      
     }
@@ -153,7 +145,7 @@ public class ClientFileThread extends java.lang.Thread
             message[2] = (byte)(this._id & 0xff);
             System.arraycopy(secret, 0, message, 3, secret.length);
             message[message.length-1] = (byte)254;
-            System.out.println("secret: " + secret.toString());
+
             return message;
         }
         
@@ -188,35 +180,23 @@ public class ClientFileThread extends java.lang.Thread
 
 //------------------------------------Send-----------------------------------------
         public boolean send(byte[] message, ClientFileThread thread) throws IOException{
-            //send
-            // try{
-                this._out.write(message);
-            // }
-            // catch(IOException ex){
-            //     System.out.println("File-" + this._id + ": Server was closed.");
-            //     return false;
-            // }
-
-            //receive
-            // try{
-                byte[] data = new byte[1024];
-                int length = this._in.read(data);
-                              
-                //if message that server receive is true
-                if (length >= 5 && 
-                   (data[0] & 0xFF) == 255 && (data[4] & 0xFF) == 254 &&
-                   (data[3] & 0xFF) == 0 &&
-                    data[1] == (byte)((this._id >> 8) & 0xFF) && data[2] == (byte)((this._id & 0xFF))){                                      
-                }
-                else{
-                    System.out.println("File-" + this._id + ": Wrong  Message Sending");
-                    return false;
-                }                        
-            // } 
-            // catch (IOException ex){ 
-            //     System.out.println("File-" + this._id + ": Server was closed.");
-            //     return false;
-            // } 
+            // send
+            this._out.write(message);
+            
+            byte[] data = new byte[1024];
+            int length = this._in.read(data);
+                          
+            // if message that server receive is true
+            if (length >= 5 && 
+               (data[0] & 0xFF) == 255 && (data[4] & 0xFF) == 254 &&
+               (data[3] & 0xFF) == 0 &&
+                data[1] == (byte)((this._id >> 8) & 0xFF) && data[2] == (byte)((this._id & 0xFF))){                                      
+            }
+            else{
+                System.out.println("File-" + this._id + ": Wrong  Message Sending");
+                return false;
+            }                        
+            
         return true;
     }
 //---------------------------------------------------------------------------------        

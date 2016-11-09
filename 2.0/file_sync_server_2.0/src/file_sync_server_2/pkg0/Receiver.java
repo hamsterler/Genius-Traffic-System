@@ -41,7 +41,6 @@ public class Receiver extends java.lang.Thread
 
 //--------------------------------------------------------Run--------------------------------------------------------
     public void run(){
-        int silent_count = 0;
         this.loopConnect();         
         System.out.println("File-"+ this._file_id + ": Connected");
         
@@ -52,9 +51,7 @@ public class Receiver extends java.lang.Thread
             _resend = false;
             try{ 
                 byte [] buffer = new byte[_server.getMaxFileSize()];              
-                // if (this._in.available() > 0)
-                // {
-                silent_count = 0;
+             
                 int buffer_length = this._in.read(buffer, 0, buffer.length); //this function can definitely tell the size of the file that was received from inpustream
                 if (buffer_length >= 4 && (buffer[0] & 0xFF) == 255 && (buffer[buffer_length-1] & 0xff) == 254){             
                     this._file_id = ((buffer[1] & 0xFF) << 8) + (buffer[2] & 0xFF);
@@ -95,13 +92,7 @@ public class Receiver extends java.lang.Thread
                 else{
                     _resend = true;
                     System.out.println("File-" + this._file_id + ": Wrong Type Of Message.");
-                }
-//                        error_count++;
-                // }
-                // else{  
-                //     silent_count++;
-                //     System.out.println("File-" + this._file_id + ": Waiting for message. " + silent_count);                    
-                // }                
+                }         
             }
             catch (Exception ex){  
                 System.out.println("File-" + this._file_id + ": Close Thread.");         
@@ -113,13 +104,8 @@ public class Receiver extends java.lang.Thread
                 this._reply(this._file_id, 1);
             }
 
-            
-//            if(this._socket.isClosed())
-//                return;
             try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
-        }               
-        // System.out.println("File-"+ this._file_id + ": Close Thread");
-        
+        }                    
     }
 //-------------------------------------------------------------------------------------------------------------------
 

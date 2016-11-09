@@ -17,7 +17,9 @@ public class Main
                 System.out.println("<<Error>>: " + client.getError());
             }      
             client.start();
-            while(!client.isAllThreadFinish()){                
+            //wait until all thread of this client done thier job
+            while(!client.isAllThreadFinish()){     
+                //waiting            
             }
 
          }
