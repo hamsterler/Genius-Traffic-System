@@ -16,11 +16,14 @@ public class Receiver extends java.lang.Thread
 {       
     public Receiver(Socket socket, Server server){
         this._server = server;
-        if (this._server.connection_count >= 9999) this._server.connection_count = 0;
+        if (this._server.connection_count >= 9999) 
+            this._server.connection_count = 0;
         else this._server.connection_count++;
-        
+
         this._socket = socket;
-        try { this._socket.setSoTimeout(this._server.getTimeout()); } catch (Exception ex) {}       
+        try { 
+            this._socket.setSoTimeout(this._server.getTimeout()); 
+        } catch (Exception ex) {}       
     }
 
 
@@ -52,13 +55,16 @@ public class Receiver extends java.lang.Thread
                 // if (this._in.available() > 0)
                 // {
                 silent_count = 0;
-                int buffer_length = this._in.read(buffer, 0, buffer.length);
-
+                int buffer_length = this._in.read(buffer, 0, buffer.length); //this function can definitely tell the size of the file that was received from inpustream
                 if (buffer_length >= 4 && (buffer[0] & 0xFF) == 255 && (buffer[buffer_length-1] & 0xff) == 254){             
                     this._file_id = ((buffer[1] & 0xFF) << 8) + (buffer[2] & 0xFF);
                     System.out.println("ID = " + this._file_id);
                     ServerFile file = findServer(this._file_id);
                     if(file != null){
+                        this._interval = file.getInterval();
+//                        System.out.println("File-" + this._file_id + ": Interval = " +this._interval);
+//                        System.out.println("File-" + this._file_id + ": Timeout = " +file.getTimeout());
+                        
                         //---------------------type 1-----------------------
                         byte[] encryptedData = new byte[buffer_length-4];
                         System.arraycopy(buffer, 3, encryptedData, 0, buffer_length-4);

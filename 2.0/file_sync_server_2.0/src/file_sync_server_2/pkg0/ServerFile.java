@@ -12,6 +12,8 @@ public class ServerFile
 {       
     public ServerFile(Server server){
         this.server = server;
+        this._timeout = server.getTimeout();
+        this._interval = 1000;
     }
 
 //-----------------Attribute------------------	
@@ -20,6 +22,9 @@ public class ServerFile
 	private String _key = "";
     private String _error = "";
     private Server server = null;
+    private int _timeout = -1;
+    private int _interval = -1;
+
     private boolean isMessageCorrect = false;
     public Encode encode = new Encode();   
     private Socket _socket = null;
@@ -41,6 +46,12 @@ public class ServerFile
     public String getError(){
         return this._error;
     }
+    public int getTimeout(){
+        return this._timeout;
+    }
+    public int getInterval(){
+        return this._interval;
+    }
 //------------------------------
 
         
@@ -49,6 +60,14 @@ public class ServerFile
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
         this._key = getStringJson(obj, "key");
+
+        int timeout = getIntegerJson(obj, "timeout");
+        if(timeout > 0) 
+            this._timeout = timeout;
+        int interval = getIntegerJson(obj, "interval");
+        if(interval > 0 )
+            this._interval = interval; 
+        
         if(this._id == -1 || this._path == null || this._key == null){
             this._error = "Null value Attribute in ServerFileload()";
             return false;           
@@ -60,18 +79,30 @@ public class ServerFile
 
 //----------------------get value for object--------------------------
     public String getStringJson(alisa.json.Object obj, String name){
-        alisa.json.Data text = obj.findData(name);
-        if (text == null || !text.isString())
+        try{
+            alisa.json.Data text = obj.findData(name);
+            if (text == null || !text.isString()){
+                this._error = "Error on <ClientFileThread> " + name; 
+                return null;
+            }
+            return text.getString();
+        } catch(NullPointerException e){
             return null;
-        return text.getString();
+        }
     }
 
     public int getIntegerJson(alisa.json.Object obj, String name){
-        alisa.json.Data text = obj.findData(name);
-        if (text == null || !text.isInteger())
+        try{
+            alisa.json.Data text = obj.findData(name);
+            if (text == null || !text.isInteger()){
+                this._error = "Error on <ClientFileThread> " + name; 
+                return -1;
+            }
+            return text.getInteger();
+        } catch(NullPointerException e){
             return -1;
-        return text.getInteger();
+        }
     }   
-//--------------------------------------------------------------------  
+//--------------------------------------------------------------------
 }
     
