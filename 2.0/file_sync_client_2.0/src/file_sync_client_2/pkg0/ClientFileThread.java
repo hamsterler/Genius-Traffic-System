@@ -98,12 +98,14 @@ public class ClientFileThread extends java.lang.Thread
                     //  Send  
                     boolean isSend = send(message,this);
                     System.out.println("File-" + this._id + " Sending Message... ");
-                    while(!isSend){
-                        System.out.println("File-" + this._id + " Resending Message... ");
-                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
-                        isSend = send(message,this);
-                        
-                    }    
+                    if(!isSend)
+                        continue;
+//                    while(!isSend){
+//                        System.out.println("File-" + this._id + " Resending Message... ");
+//                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
+//                        isSend = send(message,this);
+//                        
+//                    }    
                     System.out.println("File-" + this._id + " Sending Success!!");
                 } catch (IOException ex){  
                     System.out.println("File-" + this._id + ": Server was closed.");
