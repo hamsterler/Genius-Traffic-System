@@ -94,30 +94,17 @@ public class ClientFileThread extends java.lang.Thread
                 byte[] message = packAllData1(data); 
                
                 //sendmessage
-                try{
-                    // int missing_message_count = 0;
-                    
-//                  //---------show data-Secret-----------------
-//                    String show = "";
-//                    for(int i =0; i < message.length; i++){
-//                        show += (int)message[i] + " ";
-//                    }
-//                    System.out.println("File-" + this._id + " secret: " + show);
-//                  //------------------------------------------
-                    
+                try{             
                     //  Send  
                     boolean isSend = send(message,this);
                     System.out.println("File-" + this._id + " Sending Message... ");
-                    if(isSend = false)
-                        continue;
-//                    while(!isSend){
-//                        // missing_message_count++;
-//                        System.out.println("File-" + this._id + " Resending Message... ");
-//                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
-//                        isSend = send(message,this);
-//                    }    
+                    while(!isSend){
+                        System.out.println("File-" + this._id + " Resending Message... ");
+                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
+                        isSend = send(message,this);
+                        
+                    }    
                     System.out.println("File-" + this._id + " Sending Success!!");
-                
                 } catch (IOException ex){  
                     System.out.println("File-" + this._id + ": Server was closed.");
                     this.isFinish = true;                    
@@ -146,15 +133,9 @@ public class ClientFileThread extends java.lang.Thread
             System.arraycopy(data, 0, crcData, 0, data.length);
             crcData[crcData.length-2] = hi;
             crcData[crcData.length-1] = lo;
-            //---------show crc data------------------------
-//                
-//                String show2 = "";
-//                for(int i =0; i < crcData.length; i++){
-//                    show2 += (int)crcData[i] + " ";
-//                }
-//                System.out.println("File-" + this._id + " crcData: " + show2);
-            //------------------------------------------
             byte[] secret = new Encode().encrypt(crcData, this._key);
+            
+            //check, can the encoded data be decode and crc?. before send it to server
             byte[] decode = new Encode().decrypt(secret, this._key);
             if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
                 System.out.println("Encode Error!!");
@@ -162,20 +143,27 @@ public class ClientFileThread extends java.lang.Thread
             }
             
             System.out.println("File-" + this._id + ": Key = " +this._key);
-            //---------show encnrypted data-----------------
-//                    String show3 = "";
-//                    for(int i =0; i < secret.length; i++){
-//                        show3 += (int)secret[i] + " ";
-//                    }
-//                    System.out.println("File-" + this._id + " secret(no header): " + show3);
-            //------------------------------------------
-            //---------show encnrypted data-----------------
-//                    String show4 = "";
-//                    for(int i =0; i < decode.length; i++){
-//                        show4 += (int)decode[i] + " ";
-//                    }
-//                    System.out.println("File-" + this._id + " decodeed secret: " + show4);
-            //------------------------------------------
+        // //---------show crc data------------------------
+        //     String show2 = "";
+        //     for(int i =0; i < crcData.length; i++){
+        //        show2 += (int)crcData[i] + " ";
+        //     }
+        //     System.out.println("File-" + this._id + " crcData: " + show2);
+        // //------------------------------------------
+        // //---------show encnrypted data-----------------
+        //     String show3 = "";
+        //     for(int i =0; i < secret.length; i++){
+        //        show3 += (int)secret[i] + " ";
+        //     }
+        //    System.out.println("File-" + this._id + " secret(no header): " + show3);
+        // //------------------------------------------
+        // //---------show decnrypted data-----------------
+        //     String show4 = "";
+        //     for(int i =0; i < decode.length; i++){
+        //         show4 += (int)decode[i] + " ";
+        //     }
+        //     System.out.println("File-" + this._id + " decodeed secret: " + show4);
+        // //------------------------------------------
             
             byte[] message = new byte[secret.length + 4];
             System.arraycopy(secret, 0, message, 3, secret.length);
