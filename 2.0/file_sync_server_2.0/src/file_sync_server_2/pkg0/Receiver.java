@@ -51,23 +51,54 @@ public class Receiver extends java.lang.Thread
             _resend = false;
             try{ 
                 byte [] buffer = new byte[_server.getMaxFileSize()];              
-             
+                
+                //read
                 int buffer_length = this._in.read(buffer, 0, buffer.length); //this function can definitely tell the size of the file that was received from inpustream
                 if (buffer_length >= 4 && (buffer[0] & 0xFF) == 255 && (buffer[buffer_length-1] & 0xff) == 254){             
                     this._file_id = ((buffer[1] & 0xFF) << 8) + (buffer[2] & 0xFF);
-                    System.out.println("ID = " + this._file_id);
+//                    System.out.println("ID = " + this._file_id);
                     ServerFile file = findServer(this._file_id);
                     if(file != null){
                         this._interval = file.getInterval();
-//                        System.out.println("File-" + this._file_id + ": Interval = " +this._interval);
+                        // System.out.println("File-" + this._file_id + ": message length = " + buffer_length);
 //                        System.out.println("File-" + this._file_id + ": Timeout = " +file.getTimeout());
-                        
+                        //---------show data------------------------
+//                        System.out.print("File-" + file.getID() + " secret : ");
+//                        String show = "";
+//                        for(int i =0; i < buffer_length; i++){
+//                            show += (int)buffer[i] + " ";
+//                        }
+//                        System.out.println(show);
+                        //------------------------------------------
+
                         //---------------------type 1-----------------------
                         byte[] encryptedData = new byte[buffer_length-4];
                         System.arraycopy(buffer, 3, encryptedData, 0, buffer_length-4);
+
+                        //---------show encnrypted data-----------------
+//                        String show3 = "";
+//                        for(int i =0; i < encryptedData.length; i++){
+//                            show3 += (int)encryptedData[i] + " ";
+//                        }
+//                        System.out.println("File-" + this._file_id + " secret(no header): " + show3);
+                        //----------------------------------------------
+                        
+//                        System.out.println("File-" + this._file_id + ": secret = " + new String(encryptedData));
+                        System.out.println("File-" + this._file_id + ": Key = " + file.getKey());
                         byte[] data = new Encode().decrypt(encryptedData, file.getKey());
                             
-                        System.out.println("File-" + this._file_id + ": data = " + new String(data));
+//                        System.out.println("File-" + this._file_id + ": data = " + new String(data));
+                        // System.out.println("File-" + this._file_id + "data + crc length = " + data.length );
+                        
+                        //---------show crc data------------------------
+                        
+//                        String show2 = "";
+//                        for(int i =0; i < data.length; i++){
+//                            show2 += (int)data[i] + " ";
+//                        }
+//                        System.out.println("File-" + this._file_id + " crcData: " + show2);
+                        //------------------------------------------
+                        
                         if(alisa.CRC.crc16(data, 0, data.length)== 0){
                             System.out.println("File-" + this._file_id + ": crc correct");
                             this._reply(this._file_id, 0);
@@ -75,7 +106,7 @@ public class Receiver extends java.lang.Thread
                             byte[] dataWrite = new byte[data.length-2];
                             System.arraycopy(data, 0, dataWrite, 0, data.length-2);
                             writeBin(dataWrite, dataWrite.length, file.getPath());
-                            System.out.println("File-" + this._file_id + ": Create file >> " + file.getPath());
+//                            System.out.println("File-" + this._file_id + ": Create file >> " + file.getPath());
                             
                         }
                         else{
@@ -86,12 +117,12 @@ public class Receiver extends java.lang.Thread
 
                     }   
                     else{                            
-                        System.out.println("File-" + this._file_id + ": file = null");
+//                        System.out.println("File-" + this._file_id + ": file = null");
                     }
                 }
                 else{
                     _resend = true;
-                    System.out.println("File-" + this._file_id + ": Wrong Type Of Message.");
+//                    System.out.println("File-" + this._file_id + ": Wrong Type Of Message.");
                 }         
             }
             catch (Exception ex){  
@@ -142,7 +173,7 @@ public class Receiver extends java.lang.Thread
         }
         try{
             this._out.write(data);
-            System.out.println("File-" + id + ": Send Reply value = " + message);
+//            System.out.println("File-" + id + ": Send Reply value = " + message);
         } catch(IOException ex){
             System.out.println("Error: Cannot Send reply");
         }

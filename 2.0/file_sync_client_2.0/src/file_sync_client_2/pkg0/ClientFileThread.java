@@ -28,7 +28,6 @@ public class ClientFileThread extends java.lang.Thread
     private int _timeout = -1;
 
     private boolean isMessageCorrect = false;
-    public Encode encode = new Encode();  
     private Socket _socket = null;
     public boolean isFinish = false;
     OutputStream _out = null;
@@ -91,21 +90,32 @@ public class ClientFileThread extends java.lang.Thread
                 
                 // read file 
                 byte[] data = Files.readAllBytes(Paths.get(this._path));
-
                 //CRC data >> encrypt (data+crc) >> pack with id and start&end byte = [255][HI_ID][LOW_ID][..Encrypted Data&crc][254]
                 byte[] message = packAllData1(data); 
                
                 //sendmessage
                 try{
                     // int missing_message_count = 0;
+                    
+//                  //---------show data-Secret-----------------
+//                    String show = "";
+//                    for(int i =0; i < message.length; i++){
+//                        show += (int)message[i] + " ";
+//                    }
+//                    System.out.println("File-" + this._id + " secret: " + show);
+//                  //------------------------------------------
+                    
+                    //  Send  
                     boolean isSend = send(message,this);
                     System.out.println("File-" + this._id + " Sending Message... ");
-                    while(!isSend){
-                        // missing_message_count++;
-                        System.out.println("File-" + this._id + " Resending Message... ");
-                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
-                        isSend = send(message,this);
-                    }    
+                    if(isSend = false)
+                        continue;
+//                    while(!isSend){
+//                        // missing_message_count++;
+//                        System.out.println("File-" + this._id + " Resending Message... ");
+//                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
+//                        isSend = send(message,this);
+//                    }    
                     System.out.println("File-" + this._id + " Sending Success!!");
                 
                 } catch (IOException ex){  
@@ -125,7 +135,7 @@ public class ClientFileThread extends java.lang.Thread
         
 
 //------------------------------------pack Data before Send---------------------------------------        
-        public byte[] packAllData1(byte[] data) throws UnsupportedEncodingException{
+        public byte[] packAllData1(byte[] data) {
             //CRC
             int crc16  = alisa.CRC.crc16(data, 0, data.length);
             byte hi = (byte)((crc16 >> 8) & 0xff);
@@ -136,24 +146,52 @@ public class ClientFileThread extends java.lang.Thread
             System.arraycopy(data, 0, crcData, 0, data.length);
             crcData[crcData.length-2] = hi;
             crcData[crcData.length-1] = lo;
-
-            byte[] secret = encode.encrypt(crcData,this._key);
-
+            //---------show crc data------------------------
+//                
+//                String show2 = "";
+//                for(int i =0; i < crcData.length; i++){
+//                    show2 += (int)crcData[i] + " ";
+//                }
+//                System.out.println("File-" + this._id + " crcData: " + show2);
+            //------------------------------------------
+            byte[] secret = new Encode().encrypt(crcData, this._key);
+            byte[] decode = new Encode().decrypt(secret, this._key);
+            if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
+                System.out.println("Encode Error!!");
+                return packAllData1(data);
+            }
+            
+            System.out.println("File-" + this._id + ": Key = " +this._key);
+            //---------show encnrypted data-----------------
+//                    String show3 = "";
+//                    for(int i =0; i < secret.length; i++){
+//                        show3 += (int)secret[i] + " ";
+//                    }
+//                    System.out.println("File-" + this._id + " secret(no header): " + show3);
+            //------------------------------------------
+            //---------show encnrypted data-----------------
+//                    String show4 = "";
+//                    for(int i =0; i < decode.length; i++){
+//                        show4 += (int)decode[i] + " ";
+//                    }
+//                    System.out.println("File-" + this._id + " decodeed secret: " + show4);
+            //------------------------------------------
+            
             byte[] message = new byte[secret.length + 4];
+            System.arraycopy(secret, 0, message, 3, secret.length);
             message[0] = (byte)255;
             message[1] = (byte)((this._id >> 8) & 0xff);
             message[2] = (byte)(this._id & 0xff);
-            System.arraycopy(secret, 0, message, 3, secret.length);
             message[message.length-1] = (byte)254;
 
             return message;
         }
         
         //decrypt just data not include crc value
-        public byte[] packAllData2(byte[] data) throws UnsupportedEncodingException{
+        public byte[] packAllData2(byte[] data){
                     
             //encrypt
-            byte[] secret = encode.encrypt(data,this._key);
+            byte[] secret = new Encode().encrypt(data,this._key);
         
             //CRC
             int crc16  = alisa.CRC.crc16(secret, 0, secret.length);
@@ -182,7 +220,9 @@ public class ClientFileThread extends java.lang.Thread
         public boolean send(byte[] message, ClientFileThread thread) throws IOException{
             // send
             this._out.write(message);
+//            System.out.println("File-" + this._id + ": message length = " + message.length);
             
+            // Receive
             byte[] data = new byte[1024];
             int length = this._in.read(data);
                           
