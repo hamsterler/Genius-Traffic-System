@@ -4,7 +4,7 @@ package randomHashPassword;
 public class main {
     public static void main(String[] args) {
         int number_of_password = 100;
-        int password_length = 16; //between 8 to 16
+        int password_length = 15; //between 8 to 16
         String file_path = "D:/password.txt";
         GenPassword gen = new GenPassword();
         Hash hash = new Hash();
