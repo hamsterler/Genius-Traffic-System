@@ -21,7 +21,7 @@ public class ClientFileThread extends java.lang.Thread
 //----------Attribute-----------	
     private int _id = -1;
 	private String _path = "";
-	private String _key = "";
+	private String _password = "";
     private String _error = "";
     private Client client = null;
     private int _interval = 1000;
@@ -42,8 +42,8 @@ public class ClientFileThread extends java.lang.Thread
     public String getPath(){
             return this._path;
     }
-    public String getKey(){
-            return this._key;
+    public String getPassword(){
+            return this._password;
     }
     public String getError(){
         return this._error;
@@ -55,7 +55,7 @@ public class ClientFileThread extends java.lang.Thread
     public boolean load(alisa.json.Object obj){ 
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
-        this._key = getStringJson(obj, "key");         
+        this._password = getStringJson(obj, "password");         
         
         int timeout = getIntegerJson(obj, "timeout");
         if(timeout > 0) 
@@ -64,7 +64,7 @@ public class ClientFileThread extends java.lang.Thread
         if(interval > 0 )
             this._interval = interval; 
 
-        if(this._id == -1 || this._path == null || this._key == null){
+        if(this._id == -1 || this._path == null || this._password == null){
             this._error = "Null value Attribute in ClientFileThread.load()";
             return false;        
         }
@@ -135,16 +135,16 @@ public class ClientFileThread extends java.lang.Thread
             System.arraycopy(data, 0, crcData, 0, data.length);
             crcData[crcData.length-2] = hi;
             crcData[crcData.length-1] = lo;
-            byte[] secret = new Encode().encrypt(crcData, this._key);
+            byte[] secret = new Encode().encrypt(crcData, this._password);
             
             //check, can the encoded data be decode and crc?. before send it to server
-            byte[] decode = new Encode().decrypt(secret, this._key);
+            byte[] decode = new Encode().decrypt(secret, this._password);
             if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
                 System.out.println("Encode Error!!");
                 return packAllData1(data);
             }
             
-            System.out.println("File-" + this._id + ": Key = " +this._key);
+            System.out.println("File-" + this._id + ": Key = " +this._password);
         // //---------show crc data------------------------
         //     String show2 = "";
         //     for(int i =0; i < crcData.length; i++){
@@ -181,7 +181,7 @@ public class ClientFileThread extends java.lang.Thread
         public byte[] packAllData2(byte[] data){
                     
             //encrypt
-            byte[] secret = new Encode().encrypt(data,this._key);
+            byte[] secret = new Encode().encrypt(data,this._password);
         
             //CRC
             int crc16  = alisa.CRC.crc16(secret, 0, secret.length);

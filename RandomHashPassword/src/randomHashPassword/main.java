@@ -8,6 +8,7 @@ public class main {
         String file_path = "D:/password.txt";
         GenPassword gen = new GenPassword();
         Hash hash = new Hash();
+        //gen password in to a file
         gen.genPasswordToFile(number_of_password, password_length, file_path);
         byte[] password = gen.randomPassword(16);
         byte[] hashPass = hash.hash(password);

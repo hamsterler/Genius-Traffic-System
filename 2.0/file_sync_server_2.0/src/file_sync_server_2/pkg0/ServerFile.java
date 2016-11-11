@@ -19,7 +19,7 @@ public class ServerFile
 //-----------------Attribute------------------	
     private int _id = -1;
 	private String _path = "";
-	private String _key = "";
+	private String _password = "";
     private String _error = "";
     private Server server = null;
     private int _timeout = -1;
@@ -40,8 +40,8 @@ public class ServerFile
     public String getPath(){
             return this._path;
     }
-    public String getKey(){
-            return this._key;
+    public String getPassword(){
+            return this._password;
     }
     public String getError(){
         return this._error;
@@ -59,7 +59,7 @@ public class ServerFile
 	public boolean load(alisa.json.Object obj){ 
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
-        this._key = getStringJson(obj, "key");
+        this._password = getStringJson(obj, "password");
 
         int timeout = getIntegerJson(obj, "timeout");
         if(timeout > 0) 
@@ -68,7 +68,7 @@ public class ServerFile
         if(interval > 0 )
             this._interval = interval; 
         
-        if(this._id == -1 || this._path == null || this._key == null){
+        if(this._id == -1 || this._path == null || this._password == null){
             this._error = "Null value Attribute in ServerFileload()";
             return false;           
         }
