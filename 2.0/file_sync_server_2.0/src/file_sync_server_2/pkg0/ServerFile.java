@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,6 +21,7 @@ public class ServerFile
     private int _id = -1;
 	private String _path = "";
 	private String _password = "";
+    private byte[] _hash = null;
     private String _error = "";
     private Server server = null;
     private int _timeout = -1;
@@ -43,6 +45,9 @@ public class ServerFile
     public String getPassword(){
             return this._password;
     }
+    public byte[] getHash(){
+            return this._hash;
+    }
     public String getError(){
         return this._error;
     }
@@ -56,7 +61,7 @@ public class ServerFile
 
         
 //--------------------------Load Function-----------------------------
-	public boolean load(alisa.json.Object obj){ 
+	public boolean load(alisa.json.Object obj) throws UnsupportedEncodingException{ 
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
         this._password = getStringJson(obj, "password");
@@ -72,6 +77,9 @@ public class ServerFile
             this._error = "Null value Attribute in ServerFileload()";
             return false;           
         }
+
+        this._hash = new Hash().hash(this._password.getBytes("ISO-8859-1"));
+//        this._hash = this._password;
         return true;    
 	}
 //--------------------------------------------------------------------

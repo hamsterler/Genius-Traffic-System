@@ -1,5 +1,7 @@
 package file_sync_client_2.pkg0;
 
+import java.io.UnsupportedEncodingException;
+
 public class Client
 {        
         
@@ -33,7 +35,7 @@ public class Client
 
 
 //---------------------------------------------Load Config.json-----------------------------------------
-    public boolean loadConfig()
+    public boolean loadConfig() throws UnsupportedEncodingException
     {
         alisa.json.Parser parser = new alisa.json.Parser();
         alisa.json.Object root = parser.load("config.json");

@@ -5,39 +5,25 @@ import javax.crypto.Cipher;
 
 public class Encode{
     
-    public static byte[] encrypt(byte[] message, String password){
+    public static byte[] encrypt(byte[] message, byte[] password){
         byte[] secret = null;
-        try{
-            Key key = alisa.security.AES.generateKey(password);           
-            if (key == null) 
-                System.out.println("Error on password");            
-            else{
-                byte[] k = key.getEncoded();
-                secret = AES.encrypt(message, k);      
-            }
+        try{                  
+            secret = AES.encrypt(message, password);      
         }
         catch (Exception ex){
             System.out.println("Error: " + ex.getMessage());
-            System.out.println("Maybe your key is wrong.");
             return null;
         }   
         return secret;
     }
     
-    public static byte[] decrypt(byte[] secret, String password){
+    public static byte[] decrypt(byte[] secret, byte[] password){
         byte[] message = null;
         try{
-            Key key = alisa.security.AES.generateKey(password);
-            if (key == null) 
-                System.out.println("Error on password");
-            else{
-                byte[] k = key.getEncoded();
-                message = AES.decrypt(secret, k);
-            }
+            message = AES.decrypt(secret, password);
         }
         catch (Exception ex){
             System.out.println("Error: " + ex.getMessage());
-            System.out.println("Maybe your key is wrong.");
             return null;
         }  
         return message;

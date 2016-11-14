@@ -1,4 +1,3 @@
-
 package file_sync_client_2.pkg0;
 
 import java.io.File;
@@ -22,6 +21,7 @@ public class ClientFileThread extends java.lang.Thread
     private int _id = -1;
 	private String _path = "";
 	private String _password = "";
+    private byte[] _hash = null;
     private String _error = "";
     private Client client = null;
     private int _interval = 1000;
@@ -52,7 +52,7 @@ public class ClientFileThread extends java.lang.Thread
 
 
 //----------------Load Function------------------
-    public boolean load(alisa.json.Object obj){ 
+    public boolean load(alisa.json.Object obj) throws UnsupportedEncodingException{ 
         this._id = getIntegerJson(obj, "id");
         this._path = getStringJson(obj, "path");
         this._password = getStringJson(obj, "password");         
@@ -68,6 +68,9 @@ public class ClientFileThread extends java.lang.Thread
             this._error = "Null value Attribute in ClientFileThread.load()";
             return false;        
         }
+        
+        this._hash = new Hash().hash(this._password.getBytes("ISO-8859-1"));
+
         return true;    
     }
 //-----------------------------------------------
@@ -99,13 +102,7 @@ public class ClientFileThread extends java.lang.Thread
                     boolean isSend = send(message,this);
                     System.out.println("File-" + this._id + " Sending Message... ");
                     if(!isSend)
-                        continue;
-//                    while(!isSend){
-//                        System.out.println("File-" + this._id + " Resending Message... ");
-//                        try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
-//                        isSend = send(message,this);
-//                        
-//                    }    
+                        continue;     
                     System.out.println("File-" + this._id + " Sending Success!!");
                 } catch (IOException ex){  
                     System.out.println("File-" + this._id + ": Server was closed.");
@@ -125,55 +122,62 @@ public class ClientFileThread extends java.lang.Thread
 
 //------------------------------------pack Data before Send---------------------------------------        
         public byte[] packAllData1(byte[] data) {
-            //CRC
-            int crc16  = alisa.CRC.crc16(data, 0, data.length);
-            byte hi = (byte)((crc16 >> 8) & 0xff);
-            byte lo = (byte)(crc16 & 0xff);
-            
-            //crcData <- data + [hi][lo]
-            byte[] crcData = new byte[data.length + 2];
-            System.arraycopy(data, 0, crcData, 0, data.length);
-            crcData[crcData.length-2] = hi;
-            crcData[crcData.length-1] = lo;
-            byte[] secret = new Encode().encrypt(crcData, this._password);
-            
-            //check, can the encoded data be decode and crc?. before send it to server
-            byte[] decode = new Encode().decrypt(secret, this._password);
-            if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
-                System.out.println("Encode Error!!");
+            byte[] message = null;
+            try{
+                //CRC
+                int crc16  = alisa.CRC.crc16(data, 0, data.length);
+                byte hi = (byte)((crc16 >> 8) & 0xff);
+                byte lo = (byte)(crc16 & 0xff);
+
+                //crcData <- data + [hi][lo]
+                byte[] crcData = new byte[data.length + 2];
+                System.arraycopy(data, 0, crcData, 0, data.length);
+                crcData[crcData.length-2] = hi;
+                crcData[crcData.length-1] = lo;
+                System.out.println("File-" + this._id + ": key length = " +this._hash.length);
+                byte[] secret = new Encode().encrypt(crcData, this._hash);
+
+                //check, can the encoded data be decode and crc?. before send it to server
+                byte[] decode = new Encode().decrypt(secret, this._hash);
+                if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
+                    System.out.println("File-" + this._id + ": Wrong Encoding data!!");
+                    return packAllData1(data);
+                }
+
+                System.out.println("File-" + this._id + ": Password = " +this._password + "\n" + "File-" + this._id + ": Hash = " + new String(this._hash, "ISO-8859-1"));
+            // //---------show crc data------------------------
+            //     String show2 = "";
+            //     for(int i =0; i < crcData.length; i++){
+            //        show2 += (int)crcData[i] + " ";
+            //     }
+            //     System.out.println("File-" + this._id + " crcData: " + show2);
+            // //------------------------------------------
+            // //---------show encnrypted data-----------------
+            //     String show3 = "";
+            //     for(int i =0; i < secret.length; i++){
+            //        show3 += (int)secret[i] + " ";
+            //     }
+            //    System.out.println("File-" + this._id + " secret(no header): " + show3);
+            // //------------------------------------------
+            // //---------show decnrypted data-----------------
+            //     String show4 = "";
+            //     for(int i =0; i < decode.length; i++){
+            //         show4 += (int)decode[i] + " ";
+            //     }
+            //     System.out.println("File-" + this._id + " decodeed secret: " + show4);
+            // //------------------------------------------
+
+                message = new byte[secret.length + 4];
+                System.arraycopy(secret, 0, message, 3, secret.length);
+                message[0] = (byte)255;
+                message[1] = (byte)((this._id >> 8) & 0xff);
+                message[2] = (byte)(this._id & 0xff);
+                message[message.length-1] = (byte)254;
+            }catch(Exception e){
+                System.out.println("File-" + this._id + ": packAllData Error");
+                try { Thread.sleep(this._interval); } catch (InterruptedException ex) { }
                 return packAllData1(data);
             }
-            
-            System.out.println("File-" + this._id + ": Key = " +this._password);
-        // //---------show crc data------------------------
-        //     String show2 = "";
-        //     for(int i =0; i < crcData.length; i++){
-        //        show2 += (int)crcData[i] + " ";
-        //     }
-        //     System.out.println("File-" + this._id + " crcData: " + show2);
-        // //------------------------------------------
-        // //---------show encnrypted data-----------------
-        //     String show3 = "";
-        //     for(int i =0; i < secret.length; i++){
-        //        show3 += (int)secret[i] + " ";
-        //     }
-        //    System.out.println("File-" + this._id + " secret(no header): " + show3);
-        // //------------------------------------------
-        // //---------show decnrypted data-----------------
-        //     String show4 = "";
-        //     for(int i =0; i < decode.length; i++){
-        //         show4 += (int)decode[i] + " ";
-        //     }
-        //     System.out.println("File-" + this._id + " decodeed secret: " + show4);
-        // //------------------------------------------
-            
-            byte[] message = new byte[secret.length + 4];
-            System.arraycopy(secret, 0, message, 3, secret.length);
-            message[0] = (byte)255;
-            message[1] = (byte)((this._id >> 8) & 0xff);
-            message[2] = (byte)(this._id & 0xff);
-            message[message.length-1] = (byte)254;
-
             return message;
         }
         
@@ -181,7 +185,7 @@ public class ClientFileThread extends java.lang.Thread
         public byte[] packAllData2(byte[] data){
                     
             //encrypt
-            byte[] secret = new Encode().encrypt(data,this._password);
+            byte[] secret = new Encode().encrypt(data,this._hash);
         
             //CRC
             int crc16  = alisa.CRC.crc16(secret, 0, secret.length);

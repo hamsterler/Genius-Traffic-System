@@ -1,3 +1,4 @@
+
 package file_sync_server_2.pkg0;
 
 import java.io.BufferedInputStream;
@@ -63,7 +64,7 @@ public class Receiver extends java.lang.Thread
                         byte[] encryptedData = new byte[buffer_length-4];
                         System.arraycopy(buffer, 3, encryptedData, 0, buffer_length-4);
 
-                        byte[] data = new Encode().decrypt(encryptedData, file.getPassword());                        
+                        byte[] data = new Encode().decrypt(encryptedData, file.getHash());                        
                         
                         if(alisa.CRC.crc16(data, 0, data.length)== 0){
                             System.out.println("File-" + this._file_id + ": crc correct");

@@ -1,6 +1,5 @@
 package file_sync_client_2.pkg0;
 
-
 public class Hash {
     public byte[] hash(byte[] input){
         byte[] output = new byte[16];
