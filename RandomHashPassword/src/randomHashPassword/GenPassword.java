@@ -41,6 +41,10 @@ public class GenPassword {
         try{
             for(int i = 0; i < key.length; i++){
                 int random = (int)(Math.random() * 93 + 33);
+                if(random == '"'){
+                    i--;
+                    continue;
+                }
                 key[i] = (byte)(random);
                 if(random >= 97 && random <= 122)
                     little = true;
