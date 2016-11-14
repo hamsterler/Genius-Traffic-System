@@ -21,7 +21,7 @@ public class ServerFile
     private int _id = -1;
 	private String _path = "";
 	private String _password = "";
-    private byte[] _hash = null;
+    private byte[] _key = null;
     private String _error = "";
     private Server server = null;
     private int _timeout = -1;
@@ -45,8 +45,8 @@ public class ServerFile
     public String getPassword(){
             return this._password;
     }
-    public byte[] getHash(){
-            return this._hash;
+    public byte[] getKey(){
+            return this._key;
     }
     public String getError(){
         return this._error;
@@ -78,7 +78,7 @@ public class ServerFile
             return false;           
         }
 
-        this._hash = new Hash().hash(this._password.getBytes("ISO-8859-1"));
+        this._key = new Hash().hash(this._password.getBytes("ISO-8859-1"));
 //        this._hash = this._password;
         return true;    
 	}

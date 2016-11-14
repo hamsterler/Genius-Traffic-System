@@ -21,7 +21,7 @@ public class ClientFileThread extends java.lang.Thread
     private int _id = -1;
 	private String _path = "";
 	private String _password = "";
-    private byte[] _hash = null;
+    private byte[] _key = null;
     private String _error = "";
     private Client client = null;
     private int _interval = 1000;
@@ -69,7 +69,7 @@ public class ClientFileThread extends java.lang.Thread
             return false;        
         }
         
-        this._hash = new Hash().hash(this._password.getBytes("ISO-8859-1"));
+        this._key= new Hash().hash(this._password.getBytes("ISO-8859-1"));
 
         return true;    
     }
@@ -134,17 +134,17 @@ public class ClientFileThread extends java.lang.Thread
                 System.arraycopy(data, 0, crcData, 0, data.length);
                 crcData[crcData.length-2] = hi;
                 crcData[crcData.length-1] = lo;
-                System.out.println("File-" + this._id + ": key length = " +this._hash.length);
-                byte[] secret = new Encode().encrypt(crcData, this._hash);
+                System.out.println("File-" + this._id + ": key length = " +this._key.length);
+                byte[] secret = new Encode().encrypt(crcData, this._key);
 
                 //check, can the encoded data be decode and crc?. before send it to server
-                byte[] decode = new Encode().decrypt(secret, this._hash);
+                byte[] decode = new Encode().decrypt(secret, this._key);
                 if(alisa.CRC.crc16(decode, 0, decode.length) != 0){
                     System.out.println("File-" + this._id + ": Wrong Encoding data!!");
                     return packAllData1(data);
                 }
 
-                System.out.println("File-" + this._id + ": Password = " +this._password + "\n" + "File-" + this._id + ": Hash = " + new String(this._hash, "ISO-8859-1"));
+                System.out.println("File-" + this._id + ": Password = " +this._password + "\n" + "File-" + this._id + ": Hash = " + new String(this._key, "ISO-8859-1"));
             // //---------show crc data------------------------
             //     String show2 = "";
             //     for(int i =0; i < crcData.length; i++){
@@ -179,34 +179,7 @@ public class ClientFileThread extends java.lang.Thread
                 return packAllData1(data);
             }
             return message;
-        }
-        
-        //decrypt just data not include crc value
-        public byte[] packAllData2(byte[] data){
-                    
-            //encrypt
-            byte[] secret = new Encode().encrypt(data,this._hash);
-        
-            //CRC
-            int crc16  = alisa.CRC.crc16(secret, 0, secret.length);
-            byte hi = (byte)((crc16 >> 8) & 0xff);
-            byte lo = (byte)(crc16 & 0xff);
-            
-            //data + [hi][lo]
-            byte[] crcData = new byte[secret.length + 2];
-            System.arraycopy(secret, 0, crcData, 0, secret.length);
-            crcData[crcData.length-2] = hi;
-            crcData[crcData.length-1] = lo;
-            
-            //prepare message before send (this one work leaw na ja mai tong kae leaw ei ei)
-            byte[] message = new byte[crcData.length + 4];
-            message[0] = (byte)255;
-            message[1] = (byte)((this._id >> 8) & 0xff);
-            message[2] = (byte)(this._id & 0xff);
-            System.arraycopy(crcData, 0, message, 3, crcData.length);
-            message[message.length-1] = (byte)254;
-            return message;
-        }
+        }      
 //--------------------------------------------------------------------------------------
 
 
