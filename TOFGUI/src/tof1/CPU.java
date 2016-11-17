@@ -403,10 +403,9 @@ public class CPU
             this._reconnect();
             return false;
         }
-
+    
         try{  Thread.sleep(1000);  } 
         catch (InterruptedException ex){  return false;  }
-        
         //receive
         try 
         {
@@ -502,10 +501,9 @@ public class CPU
             this._reconnect();
             return null;
         }
+        try{  Thread.sleep(500);  } 
+        catch (InterruptedException  ex ){  return null;  }
 
-        try{  Thread.sleep(1000);  } 
-        catch (InterruptedException ex){  return null;  }
-        
         //receive
         try 
         {
@@ -518,22 +516,25 @@ public class CPU
             {                            
                 if (alisa.CRC.crc8(buffer, 0, 37) == 0) // check CRC8
                 {
-                   this._valid = buffer[34];
-                   this._detected = buffer[35];
+                    this._valid = buffer[34];
+                    this._detected = buffer[35];
                    
-                   System.out.println("Received!!!!");
-                   try{
-                   for (int i=0; i<16; i++)
-                   {
-                        int a = ((int)((buffer[2*i+2] & 0xff) << 8) + (int)(buffer[2*i+3] & 0xff));
-                        try{
-                            result[i] = a;
-                        }catch(Exception e){
-                            result[i] = 0;
-                        }
-                        System.out.print( a + " " );
-                   }   
-                   }catch(Exception e){}
+                    System.out.println("Received!!!!");
+                    try{
+                        for (int i=0; i<16; i++)
+                        {
+                             int a = ((int)((buffer[2*i+2] & 0xff) << 8) + (int)(buffer[2*i+3] & 0xff));
+                             try{
+                                 result[i] = a;
+                             }catch(Exception e){
+                                 result[i] = 0;
+                             }
+                             System.out.print( a + " " );
+                        }   
+                        System.out.println();
+                    }catch(Exception e){
+                       System.out.println("Error: " + e);
+                   }
                 } 
                 else 
                 {

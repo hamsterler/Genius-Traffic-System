@@ -13,12 +13,19 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import tof1.*;
 /**
  *
  * @author admin
  */
 public class TOFGUIController implements Initializable {
+    
+    @FXML
+    public Pane canvasPane;
+    @FXML
+    public AnchorPane anchorPane;
     
     @FXML
     private TextField value1;
@@ -120,6 +127,7 @@ public class TOFGUIController implements Initializable {
         }catch(NumberFormatException e){
            log += "Please enter numbers only." + '\n';
            printLog();
+           showMinMax();
            return;
         }        
         CPU cpu = _main.cpu;
@@ -157,24 +165,38 @@ public class TOFGUIController implements Initializable {
     }
     
     public void update(){
+        
         int[] data = this._main.cpu.getDistanceInt();
-//        value1.setText("" + data[0]);
-//        value2.setText("" + data[1]);
-//        value3.setText("" + data[2]);
-//        value4.setText("" + data[3]);
-//        value5.setText("" + data[4]);
-//        value6.setText("" + data[5]);
-//        value7.setText("" + data[6]);
-//        value8.setText("" + data[7]);
-        value1.setText("abc");
-        value2.setText("abc");
-        value3.setText("abc");
-        value4.setText("abc");
-        value5.setText("abc");
-        value6.setText("abc");
-        value7.setText("abc");
-        value8.setText("abc");
-        System.out.println(" ");
+        if(data == null){
+//            update();
+            return;
+        }
+        int num_line = this._main.draw.max_num_line;
+        this._main.draw.clearCanvas();
+        this._main.draw.draw();
+        CPU cpu = this._main.cpu;
+        for(int i = 0; i < num_line; i++){
+            int scale = (int)(5 *(cpu.getMax()[i] - cpu.getMin()[i]));
+            this._main.draw.drawEachLine(i, num_line, data[i], scale);
+        }
+        
+        value1.setText("" + data[0]);
+        value2.setText("" + data[1]);
+        value3.setText("" + data[2]);
+        value4.setText("" + data[3]);
+        value5.setText("" + data[4]);
+        value6.setText("" + data[5]);
+        value7.setText("" + data[6]);
+        value8.setText("" + data[7]);
+//        value1.setText("abc");
+//        value2.setText("abc");
+//        value3.setText("abc");
+//        value4.setText("abc");
+//        value5.setText("abc");
+//        value6.setText("abc");
+//        value7.setText("abc");
+//        value8.setText("abc");
+//        System.out.println(" ");
     }
     
     public void run(){

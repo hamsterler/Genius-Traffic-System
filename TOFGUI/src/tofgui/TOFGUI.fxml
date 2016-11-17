@@ -9,11 +9,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="631.0" prefWidth="893.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui.TOFGUIController">
+<AnchorPane id="AnchorPane" fx:id="anchorPane" prefHeight="631.0" prefWidth="893.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui.TOFGUIController">
    <children>
-      <Pane layoutX="52.0" layoutY="70.0" prefHeight="323.0" prefWidth="777.0" />
+      <Pane fx:id="canvasPane" layoutX="52.0" layoutY="70.0" prefHeight="323.0" prefWidth="777.0" />
       <Pane layoutX="2.0" layoutY="419.0" prefHeight="199.0" prefWidth="827.0" AnchorPane.bottomAnchor="13.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="64.0" AnchorPane.topAnchor="419.0">
          <children>
             <GridPane hgap="10.0" layoutY="3.0" prefHeight="90.0" prefWidth="801.0" vgap="15.0">
@@ -76,10 +75,5 @@
             <TextArea fx:id="textArea" layoutX="185.0" layoutY="111.0" prefHeight="70.0" prefWidth="616.0" />
          </children>
       </Pane>
-      <Label alignment="CENTER" layoutX="337.0" layoutY="27.0" prefHeight="25.0" prefWidth="208.0" text="TOFGUI">
-         <font>
-            <Font name="AngsanaUPC" size="42.0" />
-         </font>
-      </Label>
    </children>
 </AnchorPane>
