@@ -19,7 +19,13 @@ public class CPU
     public static final int GetDistance = 3;
     public int distance = 0;
     
-
+    //update
+    private int _serial_status = 0; //0 = idle, 1 = sending Data , 2 =getting Data, 3 = geting Distance
+    public int getStatus(){
+        return _serial_status;
+    }
+    
+    //
     public CPU(String port) 
     {
         this._port = port;
@@ -219,9 +225,15 @@ public class CPU
     //1.sendData
     public boolean sendData()
     {
+    //wait
+        while(_serial_status != 0){
+            System.out.print("");
+        }
          //send
         try 
         {
+        //set serial status    
+            _serial_status = 1;
             byte []data = new byte[36];
             
             data[0] = (byte)'{';     
@@ -245,15 +257,19 @@ public class CPU
 
         } 
         catch (Exception ex) 
-        {
+        {           
             this._error = "sendData | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
+            
+            _serial_status = 0;
             return false;
         }
 
         try{  Thread.sleep(1000);  } 
-        catch (InterruptedException ex){  return false;  }
+        catch (InterruptedException ex){  _serial_status = 0; return false;  }
+    //wait
+//        while(_serial_status != 1){}
         
         //receive
         try 
@@ -278,6 +294,8 @@ public class CPU
                 {
                     this._error = "sendData | Read | CRC Error";
                     this._connected = false;
+                //set    
+                    _serial_status = 0;
                     return false;
                 }
                 this._connected = true;
@@ -286,8 +304,10 @@ public class CPU
             {
                 this._error = "sendData | Read | Data Error";
                 this._connected = false;
+            //set
+                _serial_status = 0;
                 return false;
-            }   
+            }               
         }
         catch (Exception ex) 
         {
@@ -295,9 +315,12 @@ public class CPU
             this.distance = -3; 
             this._connected = false;
             this._reconnect();
+        //set
+            _serial_status = 0;
             return false;
         }
-        
+    //set
+        _serial_status = 0;
         return true;
     }
     
@@ -305,6 +328,7 @@ public class CPU
     //2.getData
     public boolean getData()
     {
+        while(_serial_status != 0){}
          //send
         try 
         {
@@ -323,11 +347,13 @@ public class CPU
             this._error = "getData | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
+            
+            _serial_status = 0;
             return false;
         }
 
         try{  Thread.sleep(1000);  } 
-        catch (InterruptedException ex){  return false;  }
+        catch (InterruptedException ex){ _serial_status = 0; return false;  }
         
         //receive
         try 
@@ -352,6 +378,7 @@ public class CPU
                 {
                     this._error = "getData | Read | CRC Error";
                     this._connected = false;
+                    _serial_status = 0;
                     return false;
                 }
                 this._connected = true;
@@ -360,6 +387,7 @@ public class CPU
             {
                 this._error = "getData | Read | Data Error";
                 this._connected = false;
+                _serial_status = 0;
                 return false;
             }   
         }
@@ -369,9 +397,10 @@ public class CPU
             this.distance = -3; 
             this._connected = false;
             this._reconnect();
+            _serial_status = 0;
             return false;
         }
-        
+        _serial_status = 0;
         return true;
     }
     
@@ -458,32 +487,38 @@ public class CPU
     //-------------------update----------------------
     public synchronized boolean setMinMax(byte[] min, byte[] max){
         if(min == null)         
-            this.Min = min;
-        else if(max == null)
             this.Max = max;
+        else if(max == null)
+            this.Min = min;
         else{
             this.Min = min;
             this.Max = max;
         }
         return true;
     }    
-    public synchronized int[] getMin(){
+    public int[] getMin(){
         int[] min = new int[Min.length];
         for(int i = 0;i < min.length; i++)
             min[i] = (int)(Min[i]&0xff);
         return min;
     }    
-    public synchronized int[] getMax(){
+    public int[] getMax(){
         int[] max = new int[Max.length];
         for(int i = 0;i < max.length; i++)
             max[i] = (int)(Max[i]&0xff);
         return max;
     }  
-    public synchronized int[] getDistanceInt()
+    public synchronized int[] getDistanceInt(int interval)
     {   
-        System.out.println("Boom1");
-        int[] result = new int[16];
-        System.out.println("Boom2");
+        //---wait until serial is idle---
+        while(_serial_status != 0){
+            System.out.print("");
+        }       
+        //set status
+            _serial_status = 3;
+        //-------------------------------
+        
+        int[] result = new int[17];
          //send
         try 
         {
@@ -496,22 +531,28 @@ public class CPU
 
             this._out.write(data);
             System.out.println("Sent");
+            
+            
         } 
         catch (Exception ex) 
         {
             this._error = "getDistance | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
+        //set
+            _serial_status = 0;
             return null;
         }
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet(); Thread[] threadArray = threadSet.toArray(new Thread[threadSet.size()]); for (Thread t : threadArray) { if (t.isAlive() && !t.isDaemon()) { System.out.println(t); } }
-        System.out.println("Boom3");
-        try{  Thread.sleep(300);  } 
-        catch (InterruptedException  ex ){            
+        try{  Thread.sleep(interval);  } 
+        catch (InterruptedException  ex ){  
+            _serial_status = 0;
             return null;  
         }
-        System.out.println("Boom4");
         //receive
+        
+        //wait until serial_status = 3
+//        while(_serial_status != 3){}
+        
         try 
         {
             byte[] buffer = new byte[1024];
@@ -529,25 +570,42 @@ public class CPU
                    
                     System.out.println("Received!!!!");
                     try{
-                        for (int i=0; i<16; i++)
+//                        for (int i=0; i<16; i++)
+//                        {
+//                            int a = 0;
+//                            try{
+//                                a = ((int)((buffer[2*i+2] & 0xff) << 8) + (int)(buffer[2*i+3] & 0xff));
+//                                result[i] = a;
+//                            }catch(Exception e){
+//                                result[i] = 0;
+//                            }
+//                            System.out.print( a + " " );
+//                        }   
+                        for (int i=2; i<34; i+=2)
                         {
-                             int a = ((int)((buffer[2*i+2] & 0xff) << 8) + (int)(buffer[2*i+3] & 0xff));
-                             try{
-                                 result[i] = a;
-                             }catch(Exception e){
-                                 result[i] = 0;
-                             }
-                             System.out.print( a + " " );
+                            int a = 0;
+                            try{
+                                a = ((int)((buffer[i] & 0xff) << 8) + (int)(buffer[i+1] & 0xff));
+                                result[i/2-1] = a;
+                            }catch(Exception e){
+                                result[i/2-1] = 0;
+                            }
+                            System.out.print( a + " " );
                         }   
+                        result[16] = (int)buffer[35] & 0xff;
                         System.out.println();
                     }catch(Exception e){
-                       System.out.println("Error: " + e);
+                        System.out.println("Error: " + e.getMessage());
+                    //set
+                        _serial_status = 0;
                    }
                 } 
                 else 
                 {
                     this._error = "getDistance | Read | CRC Error";
                     this._connected = false;
+                //set
+                    _serial_status = 0;
                     return null;
                 }
                 this._connected = true;
@@ -556,6 +614,8 @@ public class CPU
             {
                 this._error = "getDistance | Read | Data Error";
                 this._connected = false;
+            //set
+                _serial_status = 0;
                 return null;
             }   
         }
@@ -565,9 +625,12 @@ public class CPU
             this.distance = -3; 
             this._connected = false;
             this._reconnect();
+        //set
+            _serial_status = 0;
             return null;
         }
-        
+    //serial idle
+        _serial_status = 0;
         return result;
     } 
     //----------------------------------------------------------

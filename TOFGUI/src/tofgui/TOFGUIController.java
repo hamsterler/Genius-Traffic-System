@@ -7,15 +7,19 @@ package tofgui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import tof1.*;
 /**
  *
@@ -24,71 +28,59 @@ import tof1.*;
 public class TOFGUIController implements Initializable {
     
     @FXML
-    public Pane canvasPane;
+    public StackPane canvasPane;
     @FXML
     public AnchorPane anchorPane;
     
-    @FXML
-    private TextField value1;
-    @FXML
-    private TextField value2;
-    @FXML
-    private TextField value3;
-    @FXML
-    private TextField value4;
-    @FXML
-    private TextField value5;
-    @FXML
-    private TextField value6;
-    @FXML
-    private TextField value7;
-    @FXML
-    private TextField value8;
-    @FXML
-    private TextField max1;
-    @FXML
-    private TextField max2;
-    @FXML
-    private TextField max3;
-    @FXML
-    private TextField max4;
-    @FXML
-    private TextField max5;
-    @FXML
-    private TextField max6;
-    @FXML
-    private TextField max7;
-    @FXML
-    private TextField max8;
+    @FXML GridPane  gridpane;
     
-    @FXML
-    private TextField min1;
-    @FXML
-    private TextField min2;
-    @FXML
-    private TextField min3;
-    @FXML
-    private TextField min4;
-    @FXML
-    private TextField min5;
-    @FXML
-    private TextField min6;
-    @FXML
-    private TextField min7;
-    @FXML
-    private TextField min8;
+    @FXML private Text detect;
+    @FXML private Pane drawPane;
+//    @FXML public Text detect2 = new Text();
+    
+    
+    @FXML private TextField value1 = new TextField();
+    @FXML private TextField value2 = new TextField();
+    @FXML private TextField value3 = new TextField();
+    @FXML private TextField value4 = new TextField();
+    @FXML private TextField value5 = new TextField();
+    @FXML private TextField value6 = new TextField();
+    @FXML private TextField value7 = new TextField();
+    @FXML private TextField value8 = new TextField();
+    
+    @FXML private TextField max1 = new TextField();
+    @FXML private TextField max2 = new TextField();
+    @FXML private TextField max3 = new TextField();
+    @FXML private TextField max4 = new TextField();
+    @FXML private TextField max5 = new TextField();
+    @FXML private TextField max6 = new TextField();
+    @FXML private TextField max7 = new TextField();
+    @FXML private TextField max8 = new TextField();
+    
+    @FXML private TextField min1 = new TextField();
+    @FXML private TextField min2 = new TextField();
+    @FXML private TextField min3 = new TextField();
+    @FXML private TextField min4 = new TextField();
+    @FXML private TextField min5 = new TextField();
+    @FXML private TextField min6 = new TextField();
+    @FXML private TextField min7 = new TextField();
+    @FXML private TextField min8 = new TextField();
 
-    @FXML 
-    private TextArea textArea;
+    @FXML private TextArea textArea;
     
     String log = "";
-    @FXML
-    private Label value;
-    @FXML
-    private Button updateButton;
+    
+    @FXML private Text t1;
+    @FXML private Text t2;
+    @FXML private Text t3;
+    @FXML private Text t4;
+    @FXML private Text t5;
+    @FXML private Text t6;
+    @FXML private Text t7;
+    @FXML private Text t8;
     
     @FXML
-    private synchronized void handleButtonAction(ActionEvent event) {
+    private void handleButtonAction(ActionEvent event) {
         String[] mx = new String[8];
         String[] mn = new String[8];
         mx[0] = max1.getText().trim();
@@ -108,86 +100,75 @@ public class TOFGUIController implements Initializable {
         mn[5] = min6.getText().trim();
         mn[6] = min7.getText().trim();
         mn[7] = min8.getText().trim();
-//        mx[0] = new String(max1.getText().trim());
-//        mx[1] = new String(max2.getText().trim());
-//        mx[2] = new String(max3.getText().trim());
-//        mx[3] = new String(max4.getText().trim());
-//        mx[4] = new String(max5.getText().trim());
-//        mx[5] = new String(max6.getText().trim());
-//        mx[6] = new String(max7.getText().trim());
-//        mx[7] = new String(max8.getText().trim());
-//        
-//        mn[0] = new String(min1.getText().trim());
-//        mn[1] = new String(min2.getText().trim());
-//        mn[2] = new String(min3.getText().trim());
-//        mn[3] = new String(min4.getText().trim());
-//        mn[4] = new String(min5.getText().trim());
-//        mn[5] = new String(min6.getText().trim());
-//        mn[6] = new String(min7.getText().trim());
-//        mn[7] = new String(min8.getText().trim());
-        
-
-        int[] old_min = this._main.cpu.getMin();
-        int[] old_max = this._main.cpu.getMax();
+                
         byte[] min = new byte[16];
         byte[] max = new byte[16];
         try{
-            for(int i = 0; i < min.length; i++){
-                if(i >= 8){
-                    min[i] = (byte)old_min[i];
-                    max[i] = (byte)old_max[i];
+            for(int i = 0; i < 8;i++){
+                min[2*i] = (byte)Integer.parseInt(mn[i]);
+                min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
+                if(mn[i].isEmpty()){
+                    min[2*i] = 0;
+                    min[2*i + 1] = 0;
                 }
-                else{               
-                    if(mn[i].isEmpty())
-                        min[i] = (byte)old_min[i];
-                    else{
-                        if(Integer.parseInt(mn[i]) > 255)
-                            min[i] = (byte)(255);  
-                        else if(Integer.parseInt(mn[i]) < 0)
-                            min[i] = (byte)old_min[i];
-                        else
-                            min[i] = (byte)Integer.parseInt(mn[i]); 
-                    }
-                    if(mx[i].isEmpty())
-                        max[i] = (byte)old_max[i];
-                    else{
-                        if(Integer.parseInt(mx[i]) > 255)
-                            max[i] = (byte)(255);  
-                        else if(Integer.parseInt(mx[i]) < 0)
-                            max[i] = (byte)old_max[i];
-                        else
-                            max[i] = (byte)Integer.parseInt(mx[i]);
-                    }
-                    if(max[i] <= min[i]){
-                        max[i] = (byte)old_max[i];
-                        min[i] = (byte)old_min[i];
-                        addLog("At line " + i + ": Do not set Min greater than Max!!" + '\n');
-                    }
+                else{
+                    min[2*i] = (byte)Integer.parseInt(mn[i]);
+                    min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
+                }
+                if(mx[i].isEmpty()){
+                    max[2*i] = 0;
+                    max[2*i + 1] = 0;
+                }
+                else{
+                    max[2*i] = (byte)Integer.parseInt(mx[i]);
+                    max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
                 }
             }
+//            for(int i = 0; i < min.length; i++){
+//                if(i >= 8){
+//                    min[i] = (byte)this.cpu.getMin()[i];
+//                    max[i] = (byte)this.cpu.getMax()[i];
+//                }
+//                else{               
+//                    if(mn[i].isEmpty())
+//                        min[i] = 0;
+//                    else
+//                        min[i] = (byte)(Integer.parseInt(mn[i]));
+//
+//                    if(mx[i].isEmpty())
+//                        max[i] = 0;
+//                    else
+//                        max[i] = (byte)(Integer.parseInt(mx[i]));
+//                }
+//            }
         }catch(NumberFormatException e){
-            addLog("Please enter numbers only." + '\n');
-            showMinMax();
-            return;
+           addLog("Please enter numbers only." + '\n');
+           showMinMax();
+           return;
         }        
-//        CPU cpu = _main.cpu;
-        _main.cpu.setMinMax(min, max);
-        _main.cpu.sendData();  //send min max to the board
-        String min_log = "Set Min: ";
-        for(int i = 0; i < _main.cpu.Min.length ; i++){
-            min_log += (int)_main.cpu.Min[i] + " ";
+        CPU cpu = this.cpu;
+        //--set min max and send data to board--
+        this.cpu.setMinMax(min, max);
+        while(!this.cpu.sendData()){}
+        addLog("Set Min&Max success!!" + '\n');
+        //--------------------------------------
+        
+        System.out.print("Min = ");
+        for(int i = 0; i < cpu.Min.length ; i++){
+            System.out.print((int)cpu.Min[i] + " ");
         }
-        min_log += '\n';
-        String max_log = "Set Max: ";
-        for(int i = 0; i < _main.cpu.Max.length ; i++){
-            max_log += (int)_main.cpu.Max[i] + " ";
+        System.out.println();
+        System.out.print("Max = ");
+        for(int i = 0; i < cpu.Max.length ; i++){
+            System.out.print((int)cpu.Max[i] + " ");
         }
-        max_log += '\n';
-        addLog(min_log + max_log);
+        System.out.println();
+        
+       
 //        System.out.println("Update");
 //        update();
         showMinMax();
-        
+        System.out.println("status: " + cpu.getStatus());
     }
     
     private mainApp _main;  
@@ -196,51 +177,96 @@ public class TOFGUIController implements Initializable {
         this._main = main;
     }
     
-    
-    public void printLog(){
-        textArea.setText(log);
-    }
-    
     public void addLog(String message){
         textArea.appendText(message);
     }
-    public synchronized boolean update(){ 
     
     
-        int[] data2 = this._main.cpu.getDistanceInt();
-        int[] data = new int[data2.length];
-        System.arraycopy(data2, 0, data, 0, data2.length);
+    
+    public synchronized void update() {
+        int[] buffer = null;
+        try{
+            buffer = this.cpu.getDistanceInt(this._main.interval);
+        }catch(NullPointerException e){ 
+            System.out.println("Error: getDistance");
+            return;
+        }
+        int[] data = new int[16];
+        System.arraycopy(buffer, 0, data, 0,data.length);
+        int isDetect = buffer[16];
         if(data == null){
-            return true;
+            System.out.println("Data = null!!");
+            return;
         }
-        System.out.println("bla bla");
-        int num_line = this._main.draw.max_num_line;
-        this._main.draw.clearCanvas();
-        this._main.draw.draw();
-//        CPU cpu = this._main.cpu;
-        for(int i = 0; i < num_line; i++){
-            int scale = (int)(5 *(_main.cpu.getMax()[i] - _main.cpu.getMin()[i]));
-            this._main.draw.drawEachLine(i, num_line, data[i], scale);
-        }
-        String[] text = new String[data.length];
-        System.out.print("Distance: ");
-        for(int i = 0; i<text.length; i++){
-            text[i] = Integer.toString(data[i]);
-            System.out.print(text[i] + " ");
-        }
-        System.out.println();
         
-        value1.setText("" + data[0]);
-        value2.setText("" + data[1]);
-        value3.setText("" + data[2]);
-        value4.setText("" + data[3]);
-        value5.setText("" + data[4]);
-        value6.setText("" + data[5]);
-        value7.setText("" + data[6]);
-        value8.setText("" + data[7]);
-    
-//        System.out.println("setText");
-        return true;
+        int num_line = this._draw.max_num_line;
+        this._draw.clearCanvas();
+        this._draw.draw();
+        this._draw.drawMinMaxLine(16, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#45B39D"), 4);
+        this._draw.drawDistancePoint(16, data, this.cpu.getMax(), Color.RED.brighter());
+//        isDetect(isDetect);
+        try{
+            if(isDetect == 0){ //found
+                detect.setText("Detected!");
+                detect.setFill(Color.valueOf("#E74C3C"));
+            }else{
+                detect.setText("No Object Found");
+                detect.setFill(Color.valueOf("#5D6D7E"));
+            }     
+            t1.setText(Integer.toString(data[0]));
+            t2.setText(Integer.toString(data[1]));
+            t3.setText(Integer.toString(data[2]));
+            t4.setText(Integer.toString(data[3]));
+            t5.setText(Integer.toString(data[4]));
+            t6.setText(Integer.toString(data[5]));
+            t7.setText(Integer.toString(data[6]));
+            t8.setText(Integer.toString(data[7]));
+//                if(Integer.toString(data[0]) != null){
+////                    value1.clear();
+//                    value1.setText(Integer.toString(data[0]));
+//                }
+//                if(Integer.toString(data[1]) != null){
+////                    value2.clear();
+//                    value2.setText(Integer.toString(data[1]));                 
+//                }
+//                if(Integer.toString(data[2]) != null){
+////                    value3.clear();
+//                    value3.setText(Integer.toString(data[2]));
+//                }
+//                if(Integer.toString(data[3]) != null){
+////                    value4.clear();
+//                    value4.setText(Integer.toString(data[3]));
+//                }
+//                if(Integer.toString(data[4]) != null){
+////                    value5.clear();
+//                    value5.setText(Integer.toString(data[4]));
+//                }
+//                if(Integer.toString(data[5]) != null){
+////                    value6.clear();
+//                    value6.setText(Integer.toString(data[5]));
+//                }
+//                if(Integer.toString(data[6]) != null){
+////                    value7.clear();
+//                    value7.setText(Integer.toString(data[6]));
+//                }
+//                if(Integer.toString(data[7]) != null){
+////                    value8.clear();
+//                    value8.setText(Integer.toString(data[7]));
+//                }
+            
+//            value1.setText(Integer.toString(data[0]));
+//            value2.setText(Integer.toString(data[1]));
+//            value3.setText(Integer.toString(data[2]));
+//            value4.setText(Integer.toString(data[3]));
+//            value5.setText(Integer.toString(data[4]));
+//            value6.setText(Integer.toString(data[5]));
+//            value7.setText(Integer.toString(data[6]));
+//            value8.setText(Integer.toString(data[7]));
+                 
+        }
+        catch(NullPointerException e){  
+            System.out.println("Error: " +  e.getMessage());        
+        }
     }
     
     public void run(){
@@ -252,41 +278,80 @@ public class TOFGUIController implements Initializable {
 //        }   
         System.out.println("Hello");
     }
-    
-    public void showMinMax(){
-        int[] min = this._main.cpu.getMin();
-        int[] max = this._main.cpu.getMax();
+    public void showMinMax(){  //ver2
+        CPU cpu = this.cpu;
+        int[] min = cpu.getMin();
+        int[] max = cpu.getMax();
+        try{
         min1.setText("" + min[0]);
-        min2.setText("" + min[1]);
-        min3.setText("" + min[2]);
-        min4.setText("" + min[3]);
-        min5.setText("" + min[4]);
-        min6.setText("" + min[5]);
-        min7.setText("" + min[6]);
-        min8.setText("" + min[7]);
+        min2.setText("" + min[2]);
+        min3.setText("" + min[4]);
+        min4.setText("" + min[6]);
+        min5.setText("" + min[8]);
+        min6.setText("" + min[10]);
+        min7.setText("" + min[12]);
+        min8.setText("" + min[14]);
         
         max1.setText("" + max[0]);
-        max2.setText("" + max[1]);
-        max3.setText("" + max[2]);
-        max4.setText("" + max[3]);
-        max5.setText("" + max[4]);
-        max6.setText("" + max[5]);
-        max7.setText("" + max[6]);
-        max8.setText("" + max[7]);
-    }   
+        max2.setText("" + max[2]);
+        max3.setText("" + max[4]);
+        max4.setText("" + max[6]);
+        max5.setText("" + max[8]);
+        max6.setText("" + max[10]);
+        max7.setText("" + max[12]);
+        max8.setText("" + max[14]);
+        }catch(NullPointerException e){
+            System.out.println("Error: " +  e.getMessage());
+        }
+    } 
+//    public void showMinMax(){
+//        CPU cpu = this.cpu;
+//        int[] min = cpu.getMin();
+//        int[] max = cpu.getMax();
+//        try{
+//        min1.setText("" + min[0]);
+//        min2.setText("" + min[1]);
+//        min3.setText("" + min[2]);
+//        min4.setText("" + min[3]);
+//        min5.setText("" + min[4]);
+//        min6.setText("" + min[5]);
+//        min7.setText("" + min[6]);
+//        min8.setText("" + min[7]);
+//        
+//        max1.setText("" + max[0]);
+//        max2.setText("" + max[1]);
+//        max3.setText("" + max[2]);
+//        max4.setText("" + max[3]);
+//        max5.setText("" + max[4]);
+//        max6.setText("" + max[5]);
+//        max7.setText("" + max[6]);
+//        max8.setText("" + max[7]);
+//        }catch(NullPointerException e){
+//            System.out.println("Error: " +  e.getMessage());
+//        }
+//    }   
     
     
+    public CPU cpu;
+    private Draw _draw;
+//    public Text detect = new Text();
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        cpu = new CPU("COM4");
+        cpu.readConfig();
+        
+        
+//        Pane canvasPane = new Pane();
+//        canvasPane.setPrefWidth(777);
+//        canvasPane.setPrefHeight(323);
+//        canvasPane.setStyle("-fx-background-color: #EBEDEF");
+//        drawPane.setPrefWidth(777);
+//        drawPane.setPrefHeight(323);
+        drawPane.setStyle("-fx-background-color: #EBEDEF");
+        _draw = new Draw(777, 323, 300, 16);
+        drawPane.getChildren().add(_draw.getCanvas());
+        
         textArea.setEditable(false);
-        value1.setMouseTransparent(true);
-        value2.setMouseTransparent(true);
-        value3.setMouseTransparent(true);
-        value4.setMouseTransparent(true);
-        value5.setMouseTransparent(true);
-        value6.setMouseTransparent(true);
-        value7.setMouseTransparent(true);
-        value8.setMouseTransparent(true);
         value1.setEditable(false);
         value2.setEditable(false);
         value3.setEditable(false);
@@ -295,7 +360,18 @@ public class TOFGUIController implements Initializable {
         value6.setEditable(false);
         value7.setEditable(false);
         value8.setEditable(false);
+        
         showMinMax();
-    }    
+        this.cpu.sendData();
+    }  
+    
+    public void isDetect(int value){
+        if(value == 0){ //found
+//            detect.setTextFill(Color.valueOf("#F1948A"));
+            detect.setText("Detected!");           
+        }else{
+            detect.setText("Not Found");
+        }       
+    }
     
 }
