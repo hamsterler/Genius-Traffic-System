@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 public class CPU 
 {
@@ -455,7 +456,7 @@ public class CPU
         return true;
     }
     //-------------------update----------------------
-    public boolean setMinMax(byte[] min, byte[] max){
+    public synchronized boolean setMinMax(byte[] min, byte[] max){
         if(min == null)         
             this.Min = min;
         else if(max == null)
@@ -466,21 +467,23 @@ public class CPU
         }
         return true;
     }    
-    public int[] getMin(){
+    public synchronized int[] getMin(){
         int[] min = new int[Min.length];
         for(int i = 0;i < min.length; i++)
             min[i] = (int)(Min[i]&0xff);
         return min;
     }    
-    public int[] getMax(){
+    public synchronized int[] getMax(){
         int[] max = new int[Max.length];
         for(int i = 0;i < max.length; i++)
             max[i] = (int)(Max[i]&0xff);
         return max;
     }  
-    public int[] getDistanceInt()
-    {
+    public synchronized int[] getDistanceInt()
+    {   
+        System.out.println("Boom1");
         int[] result = new int[16];
+        System.out.println("Boom2");
          //send
         try 
         {
@@ -501,13 +504,18 @@ public class CPU
             this._reconnect();
             return null;
         }
-        try{  Thread.sleep(500);  } 
-        catch (InterruptedException  ex ){  return null;  }
-
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet(); Thread[] threadArray = threadSet.toArray(new Thread[threadSet.size()]); for (Thread t : threadArray) { if (t.isAlive() && !t.isDaemon()) { System.out.println(t); } }
+        System.out.println("Boom3");
+        try{  Thread.sleep(300);  } 
+        catch (InterruptedException  ex ){            
+            return null;  
+        }
+        System.out.println("Boom4");
         //receive
         try 
         {
             byte[] buffer = new byte[1024];
+            
             int length = this._in.read(buffer);
                      
             System.out.println(length);

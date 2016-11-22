@@ -27,7 +27,7 @@ public class Draw {
         _gc = this._canvas.getGraphicsContext2D();
     }
   
-    public void draw(){
+    public synchronized void draw(){
         for(int i = 0; i < this.max_num_line; i++){
             double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.max_num_line - 1));
             int y =(int)(this.max_line_length * Math.sin(angle));
@@ -41,7 +41,7 @@ public class Draw {
         }
     }
     
-    public void drawEachLine(int line_num,int max_num, int distance, int max_distance){       
+    public synchronized void drawEachLine(int line_num,int max_num, int distance, int max_distance){       
         double angle = (Math.PI/(double)4) + line_num * Math.PI/(double)(2*(max_num-1));
         int line_length = 0;
         if(distance >= max_distance)
