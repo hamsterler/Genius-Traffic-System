@@ -27,44 +27,37 @@ import tof1.*;
  */
 public class TOFGUIController implements Initializable {
     
-    @FXML
-    public StackPane canvasPane;
-    @FXML
-    public AnchorPane anchorPane;
-    
-    @FXML GridPane  gridpane;
-    
+    @FXML public StackPane canvasPane;
+    @FXML public AnchorPane anchorPane;  
     @FXML private Text detect;
-    @FXML private Pane drawPane;
-//    @FXML public Text detect2 = new Text();
+    @FXML private Pane drawPane;    
     
+    @FXML private TextField value1;
+    @FXML private TextField value2;
+    @FXML private TextField value3;
+    @FXML private TextField value4;
+    @FXML private TextField value5;
+    @FXML private TextField value6;
+    @FXML private TextField value7;
+    @FXML private TextField value8;
     
-    @FXML private TextField value1 = new TextField();
-    @FXML private TextField value2 = new TextField();
-    @FXML private TextField value3 = new TextField();
-    @FXML private TextField value4 = new TextField();
-    @FXML private TextField value5 = new TextField();
-    @FXML private TextField value6 = new TextField();
-    @FXML private TextField value7 = new TextField();
-    @FXML private TextField value8 = new TextField();
+    @FXML private TextField max1;
+    @FXML private TextField max2;
+    @FXML private TextField max3;
+    @FXML private TextField max4;
+    @FXML private TextField max5;
+    @FXML private TextField max6;
+    @FXML private TextField max7;
+    @FXML private TextField max8;
     
-    @FXML private TextField max1 = new TextField();
-    @FXML private TextField max2 = new TextField();
-    @FXML private TextField max3 = new TextField();
-    @FXML private TextField max4 = new TextField();
-    @FXML private TextField max5 = new TextField();
-    @FXML private TextField max6 = new TextField();
-    @FXML private TextField max7 = new TextField();
-    @FXML private TextField max8 = new TextField();
-    
-    @FXML private TextField min1 = new TextField();
-    @FXML private TextField min2 = new TextField();
-    @FXML private TextField min3 = new TextField();
-    @FXML private TextField min4 = new TextField();
-    @FXML private TextField min5 = new TextField();
-    @FXML private TextField min6 = new TextField();
-    @FXML private TextField min7 = new TextField();
-    @FXML private TextField min8 = new TextField();
+    @FXML private TextField min1;
+    @FXML private TextField min2;
+    @FXML private TextField min3;
+    @FXML private TextField min4;
+    @FXML private TextField min5;
+    @FXML private TextField min6;
+    @FXML private TextField min7;
+    @FXML private TextField min8;
 
     @FXML private TextArea textArea;
     
@@ -78,6 +71,37 @@ public class TOFGUIController implements Initializable {
     @FXML private Text t6;
     @FXML private Text t7;
     @FXML private Text t8;
+    public int data_size = 16;
+    public CPU cpu;
+    private Draw _draw;
+//    public Text detect = new Text();
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        cpu = new CPU("COM4");
+        cpu.readConfig();
+        
+        if(cpu.getDevice() == 4)
+            data_size = 8;
+        else
+            data_size = 16;
+        
+        drawPane.setStyle("-fx-background-color: #EBEDEF");
+        _draw = new Draw(777, 323, 300, data_size);
+        drawPane.getChildren().add(_draw.getCanvas());
+        
+        textArea.setEditable(false);
+        value1.setEditable(false);
+        value2.setEditable(false);
+        value3.setEditable(false);
+        value4.setEditable(false);
+        value5.setEditable(false);
+        value6.setEditable(false);
+        value7.setEditable(false);
+        value8.setEditable(false);
+        
+        showMinMax();
+        this.cpu.sendData();
+    }  
     
     @FXML
     private void handleButtonAction(ActionEvent event) {
@@ -101,8 +125,8 @@ public class TOFGUIController implements Initializable {
         mn[6] = min7.getText().trim();
         mn[7] = min8.getText().trim();
                 
-        byte[] min = new byte[16];
-        byte[] max = new byte[16];
+        byte[] min = new byte[data_size];
+        byte[] max = new byte[data_size];
         try{
             for(int i = 0; i < 8;i++){
                 min[2*i] = (byte)Integer.parseInt(mn[i]);
@@ -184,6 +208,7 @@ public class TOFGUIController implements Initializable {
     
     
     public synchronized void update() {
+        //recieve data 
         int[] buffer = null;
         try{
             buffer = this.cpu.getDistanceInt(this._main.interval);
@@ -191,21 +216,24 @@ public class TOFGUIController implements Initializable {
             System.out.println("Error: getDistance");
             return;
         }
-        int[] data = new int[16];
+        int[] data = new int[data_size];
         System.arraycopy(buffer, 0, data, 0,data.length);
-        int isDetect = buffer[16];
+        int isDetect = buffer[data_size];
+        
         if(data == null){
             System.out.println("Data = null!!");
             return;
         }
         
+        
         int num_line = this._draw.max_num_line;
         this._draw.clearCanvas();
         this._draw.draw();
-        this._draw.drawMinMaxLine(16, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);
-        this._draw.drawDistancePoint(16, data, this.cpu.getMax(), Color.RED.brighter());
+        this._draw.drawMinMaxLine(data_size, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);
+        this._draw.drawDistancePoint(data_size, data, this.cpu.getMax(), Color.RED.brighter());
+//        isDetect(isDetect);
         try{
-            if(isDetect == 1){ //found
+            if(isDetect == 0){ //found
                 detect.setText("Detected!");
                 detect.setFill(Color.valueOf("#E74C3C"));
             }else{
@@ -290,38 +318,7 @@ public class TOFGUIController implements Initializable {
 //    }   
     
     
-    public CPU cpu;
-    private Draw _draw;
-//    public Text detect = new Text();
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        cpu = new CPU("COM4");
-        cpu.readConfig();
-        
-        
-//        Pane canvasPane = new Pane();
-//        canvasPane.setPrefWidth(777);
-//        canvasPane.setPrefHeight(323);
-//        canvasPane.setStyle("-fx-background-color: #EBEDEF");
-//        drawPane.setPrefWidth(777);
-//        drawPane.setPrefHeight(323);
-        drawPane.setStyle("-fx-background-color: #EBEDEF");
-        _draw = new Draw(777, 323, 300, 16);
-        drawPane.getChildren().add(_draw.getCanvas());
-        
-        textArea.setEditable(false);
-        value1.setEditable(false);
-        value2.setEditable(false);
-        value3.setEditable(false);
-        value4.setEditable(false);
-        value5.setEditable(false);
-        value6.setEditable(false);
-        value7.setEditable(false);
-        value8.setEditable(false);
-        
-        showMinMax();
-        this.cpu.sendData();
-    }  
+    
     
     public void isDetect(int value){
         if(value == 0){ //found
