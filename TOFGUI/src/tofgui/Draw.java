@@ -83,8 +83,8 @@ public class Draw {
             double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(max_num-1));
             int ymin =(int)(min[i] * Math.sin(angle) * ((double)max_line_length / (double)max[i]));
             int xmin = (int)(min[i] * Math.cos(angle) * ((double)max_line_length / (double)max[i]));
-            int xmax = (int)(max[i] * Math.cos(angle) * ((double)max_line_length / (double)max[i]));
-            int ymax =(int)(max[i] * Math.sin(angle) * ((double)max_line_length / (double)max[i]));
+            int xmax = (int)((double)max_line_length * Math.cos(angle));
+            int ymax =(int)((double)max_line_length * Math.sin(angle));
             _gc.setStroke(color);     
             _gc.setLineWidth(line_size);
             _gc.beginPath();

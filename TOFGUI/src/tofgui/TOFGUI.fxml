@@ -235,7 +235,7 @@
                      </font></Text>
                </children>
             </GridPane>
-            <Button fx:id="updateButton" layoutX="89.0" layoutY="111.0" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="25.0" prefWidth="81.0" text="Update">
+            <Button fx:id="updateButton" layoutX="89.0" layoutY="124.0" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="25.0" prefWidth="81.0" text="Update">
                <font>
                   <Font size="14.0" />
                </font></Button>

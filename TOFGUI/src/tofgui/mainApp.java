@@ -29,25 +29,19 @@ import tof1.*;
  * @author admin
  */
 public class mainApp extends Application {
-//    public Draw draw;
-//    public CPU cpu;
+
     public int interval = 300;
     public TOFGUIController _controller;
     @Override
     public void start(Stage stage) throws Exception {
-//        cpu = new CPU("COM4");
-//        cpu.readConfig();
-//        
+
         FXMLLoader loader;
         AnchorPane root;
-//        try{
-            loader = new FXMLLoader();
-            loader.setLocation(mainApp.class.getResource("TOFGUI.fxml"));       
-            root = loader.load();
-//        }catch(Exception e){
-//            System.out.println("Error: " + e);
-//            return;
-//        }
+
+        loader = new FXMLLoader();
+        loader.setLocation(mainApp.class.getResource("TOFGUI.fxml"));       
+        root = loader.load();
+
         _controller = loader.getController();  //<<Note:Have to assign this after loader.load()
         _controller.setMain(this);
         
@@ -55,15 +49,7 @@ public class mainApp extends Application {
         
         _controller.anchorPane.setStyle("-fx-background-color: #5D6D7E");
         
-//        Pane canvasPane = new Pane();
-//        canvasPane.setPrefWidth(777);
-//        canvasPane.setPrefHeight(323);
-//        canvasPane.setStyle("-fx-background-color: #ffffff");
-//        draw = new Draw(777, 323, 300, 8);
-//        canvasPane.getChildren().add(draw.getCanvas());
-//        _controller.canvasPane.getChildren().add(canvasPane);
-        
-        
+
         Scene scene = new Scene(root);
         stage.setTitle("TOFGUI");
         stage.setScene(scene);
@@ -74,22 +60,6 @@ public class mainApp extends Application {
         thread.setDaemon(true);
         thread.start();
     }
-//        Runnable task = new Runnable(){
-//        public void run(){
-//            Platform.runLater(new Runnable(){
-//            @Override public void run(){
-//                while(true){
-//                    try{             
-//                        _controller.update();
-//                    }catch(Exception e){
-//    //                        e.printStackTrace();
-//                        System.out.println("Error: " + e);
-//                    }
-//                }   
-//            }});
-//        }};
-        
-  
     
     Task task = new Task<Void>() {
     @Override public Void call() {

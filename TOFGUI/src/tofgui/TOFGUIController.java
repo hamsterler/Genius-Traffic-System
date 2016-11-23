@@ -202,7 +202,7 @@ public class TOFGUIController implements Initializable {
         int num_line = this._draw.max_num_line;
         this._draw.clearCanvas();
         this._draw.draw();
-        this._draw.drawMinMaxLine(16, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#45B39D"), 4);
+        this._draw.drawMinMaxLine(16, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);
         this._draw.drawDistancePoint(16, data, this.cpu.getMax(), Color.RED.brighter());
 //        isDetect(isDetect);
         try{
@@ -221,48 +221,7 @@ public class TOFGUIController implements Initializable {
             t6.setText(Integer.toString(data[5]));
             t7.setText(Integer.toString(data[6]));
             t8.setText(Integer.toString(data[7]));
-//                if(Integer.toString(data[0]) != null){
-////                    value1.clear();
-//                    value1.setText(Integer.toString(data[0]));
-//                }
-//                if(Integer.toString(data[1]) != null){
-////                    value2.clear();
-//                    value2.setText(Integer.toString(data[1]));                 
-//                }
-//                if(Integer.toString(data[2]) != null){
-////                    value3.clear();
-//                    value3.setText(Integer.toString(data[2]));
-//                }
-//                if(Integer.toString(data[3]) != null){
-////                    value4.clear();
-//                    value4.setText(Integer.toString(data[3]));
-//                }
-//                if(Integer.toString(data[4]) != null){
-////                    value5.clear();
-//                    value5.setText(Integer.toString(data[4]));
-//                }
-//                if(Integer.toString(data[5]) != null){
-////                    value6.clear();
-//                    value6.setText(Integer.toString(data[5]));
-//                }
-//                if(Integer.toString(data[6]) != null){
-////                    value7.clear();
-//                    value7.setText(Integer.toString(data[6]));
-//                }
-//                if(Integer.toString(data[7]) != null){
-////                    value8.clear();
-//                    value8.setText(Integer.toString(data[7]));
-//                }
-            
-//            value1.setText(Integer.toString(data[0]));
-//            value2.setText(Integer.toString(data[1]));
-//            value3.setText(Integer.toString(data[2]));
-//            value4.setText(Integer.toString(data[3]));
-//            value5.setText(Integer.toString(data[4]));
-//            value6.setText(Integer.toString(data[5]));
-//            value7.setText(Integer.toString(data[6]));
-//            value8.setText(Integer.toString(data[7]));
-                 
+
         }
         catch(NullPointerException e){  
             System.out.println("Error: " +  e.getMessage());        

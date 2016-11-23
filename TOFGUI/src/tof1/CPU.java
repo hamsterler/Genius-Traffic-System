@@ -130,11 +130,14 @@ public class CPU
             
             String[] value_min = lines.get(0).split(",");
             String[] value_max = lines.get(1).split(",");
-          
+//            System.out.print("Max: ");
             for(int i=0; i<Min.length; i++)
             {
-                Min[i] = Byte.parseByte(value_min[i]);
-                Max[i] = Byte.parseByte(value_max[i]);
+//                System.out.print(Integer.parseInt(value_max[i]) + " ");
+                Min[i] = (byte)Integer.parseInt(value_min[i]);
+                Max[i] = (byte)Integer.parseInt(value_max[i]);
+//                Min[i] = Byte.parseByte(value_min[i]);
+//                Max[i] = Byte.parseByte(value_max[i]);
             }
            // for(int i=0; i<Min.length; i++){System.out.println(Min[i]+","+ Max[i]);}  
         }
