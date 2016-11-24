@@ -61,49 +61,49 @@
                <children>
                   <Label alignment="CENTER_RIGHT" prefHeight="17.0" prefWidth="89.0" text="Max:" GridPane.rowIndex="1">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font>
                   </Label>
                   <Label alignment="CENTER_RIGHT" prefHeight="17.0" prefWidth="83.0" text="Min:" GridPane.rowIndex="2">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="23.0" prefWidth="92.0" text="1" textAlignment="CENTER" GridPane.columnIndex="1">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font>
                   </Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="96.0" text="2" GridPane.columnIndex="2">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="98.0" text="3" GridPane.columnIndex="3">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="93.0" text="4" GridPane.columnIndex="4">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="99.0" text="5" GridPane.columnIndex="5">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="94.0" text="6" GridPane.columnIndex="6">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="92.0" text="7" GridPane.columnIndex="7">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label alignment="CENTER" prefHeight="17.0" prefWidth="93.0" text="8" GridPane.columnIndex="8">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <Label fx:id="value" alignment="CENTER_RIGHT" prefHeight="17.0" prefWidth="82.0" text="Distance:" GridPane.rowIndex="3">
                      <font>
-                        <Font size="14.0" />
+                        <Font name="System Bold" size="14.0" />
                      </font></Label>
                   <TextField fx:id="max1" alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
                      <font>
@@ -235,14 +235,20 @@
                      </font></Text>
                </children>
             </GridPane>
-            <Button fx:id="updateButton" layoutX="89.0" layoutY="124.0" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="25.0" prefWidth="81.0" text="Update">
+            <Button fx:id="updateButton" layoutX="89.0" layoutY="154.0" mnemonicParsing="false" onAction="#handleButtonAction" prefHeight="25.0" prefWidth="81.0" text="Update" textFill="#5d6d7e">
                <font>
-                  <Font size="14.0" />
+                  <Font name="System Bold" size="14.0" />
                </font></Button>
-            <TextArea fx:id="textArea" layoutX="185.0" layoutY="124.0" prefHeight="70.0" prefWidth="616.0">
+            <TextArea fx:id="textArea" layoutX="185.0" layoutY="114.0" prefHeight="80.0" prefWidth="616.0">
                <font>
                   <Font size="14.0" />
                </font></TextArea>
+            <TextField fx:id="interval" alignment="CENTER" layoutX="90.0" layoutY="114.0" prefHeight="25.0" prefWidth="79.0" />
+            <Label layoutX="26.0" layoutY="117.0" text="Interval:">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
          </children>
       </Pane>
    </children>

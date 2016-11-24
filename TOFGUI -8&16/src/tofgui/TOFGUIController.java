@@ -7,6 +7,8 @@ package tofgui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -71,36 +73,41 @@ public class TOFGUIController implements Initializable {
     @FXML private Text t6;
     @FXML private Text t7;
     @FXML private Text t8;
+    
+    @FXML private TextField interval;
     public int data_size = 16;
     public CPU cpu;
     private Draw _draw;
 //    public Text detect = new Text();
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        cpu = new CPU("COM4");
-        cpu.readConfig();
-        
-        if(cpu.getDevice() == 4)
-            data_size = 8;
-        else
-            data_size = 16;
-        
-        drawPane.setStyle("-fx-background-color: #EBEDEF");
-        _draw = new Draw(777, 323, 300, data_size);
-        drawPane.getChildren().add(_draw.getCanvas());
-        
-        textArea.setEditable(false);
-        value1.setEditable(false);
-        value2.setEditable(false);
-        value3.setEditable(false);
-        value4.setEditable(false);
-        value5.setEditable(false);
-        value6.setEditable(false);
-        value7.setEditable(false);
-        value8.setEditable(false);
-        
-        showMinMax();
-        this.cpu.sendData();
+        try{
+            drawPane.setStyle("-fx-background-color: #EBEDEF");
+            _draw = new Draw(777, 323, 300, data_size);
+            drawPane.getChildren().add(_draw.getCanvas());
+
+            textArea.setEditable(false);
+            value1.setEditable(false);
+            value2.setEditable(false);
+            value3.setEditable(false);
+            value4.setEditable(false);
+            value5.setEditable(false);
+            value6.setEditable(false);
+            value7.setEditable(false);
+            value8.setEditable(false);
+
+
+            cpu = new CPU("COM4");
+            cpu.readConfig();
+            cpu.getVersion();
+            this.addLog(cpu.getVersionString());
+            this.data_size = cpu.line_num;  //<<8 or 16
+            this.interval.setText("" + this.cpu.interval);
+            showMinMax();
+            this.cpu.sendData();
+        }catch(Exception ex){
+            addLog(ex.getMessage() + '\n');
+        }
     }  
     
     @FXML
@@ -125,46 +132,45 @@ public class TOFGUIController implements Initializable {
         mn[6] = min7.getText().trim();
         mn[7] = min8.getText().trim();
                 
+        this.cpu.interval = Integer.parseInt(interval.getText().trim());
         byte[] min = new byte[data_size];
         byte[] max = new byte[data_size];
         try{
-            for(int i = 0; i < 8;i++){
-                min[2*i] = (byte)Integer.parseInt(mn[i]);
-                min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
-                if(mn[i].isEmpty()){
-                    min[2*i] = 0;
-                    min[2*i + 1] = 0;
+            if(data_size == 16){
+                for(int i = 0; i < 8;i++){
+                    if(mn[i].isEmpty()){
+                        min[2*i] = (byte)cpu.getMin()[i];
+                        min[2*i + 1] = (byte)cpu.getMin()[i];
+                    }
+                    else{
+                        min[2*i] = (byte)Integer.parseInt(mn[i]);
+                        min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
+                    }
+                    if(mx[i].isEmpty()){
+                        max[2*i] = (byte)cpu.getMax()[i];
+                        max[2*i + 1] = (byte)cpu.getMax()[i];
+                    }
+                    else{
+                        max[2*i] = (byte)Integer.parseInt(mx[i]);
+                        max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
+                    }
                 }
-                else{
-                    min[2*i] = (byte)Integer.parseInt(mn[i]);
-                    min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
-                }
-                if(mx[i].isEmpty()){
-                    max[2*i] = 0;
-                    max[2*i + 1] = 0;
-                }
-                else{
-                    max[2*i] = (byte)Integer.parseInt(mx[i]);
-                    max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
+            }else{
+                for(int i = 0; i < 8;i++){
+                    if(mn[i].isEmpty()){
+                        min[i] = (byte)cpu.getMin()[i];
+                    }
+                    else{
+                        min[i] = (byte)Integer.parseInt(mn[i]);
+                    }
+                    if(mx[i].isEmpty()){
+                        max[i] = (byte)cpu.getMax()[i];
+                    }
+                    else{
+                        max[i] = (byte)Integer.parseInt(mx[i]);
+                    }
                 }
             }
-//            for(int i = 0; i < min.length; i++){
-//                if(i >= 8){
-//                    min[i] = (byte)this.cpu.getMin()[i];
-//                    max[i] = (byte)this.cpu.getMax()[i];
-//                }
-//                else{               
-//                    if(mn[i].isEmpty())
-//                        min[i] = 0;
-//                    else
-//                        min[i] = (byte)(Integer.parseInt(mn[i]));
-//
-//                    if(mx[i].isEmpty())
-//                        max[i] = 0;
-//                    else
-//                        max[i] = (byte)(Integer.parseInt(mx[i]));
-//                }
-//            }
         }catch(NumberFormatException e){
            addLog("Please enter numbers only." + '\n');
            showMinMax();
@@ -189,10 +195,7 @@ public class TOFGUIController implements Initializable {
         System.out.println();
         
        
-//        System.out.println("Update");
-//        update();
         showMinMax();
-        System.out.println("status: " + cpu.getStatus());
     }
     
     private mainApp _main;  
@@ -209,29 +212,27 @@ public class TOFGUIController implements Initializable {
     
     public synchronized void update() {
         //recieve data 
-        int[] buffer = null;
+        int[] buffer;
+        int[] data;
+        int isDetect;
         try{
-            buffer = this.cpu.getDistanceInt(this._main.interval);
-        }catch(NullPointerException e){ 
-            System.out.println("Error: getDistance");
+            buffer = this.cpu.getDistanceInt();
+        }catch(Exception ex){ 
+            System.out.println("Error: " + ex.getMessage());
             return;
         }
-        int[] data = new int[data_size];
-        System.arraycopy(buffer, 0, data, 0,data.length);
-        int isDetect = buffer[data_size];
+            data = new int[data_size];
+            System.arraycopy(buffer, 0, data, 0,data.length);
+            isDetect = buffer[data_size];       
+
+            int num_line = this._draw.line_num;
+            this._draw.clearCanvas();
+            this._draw.draw();
+            this._draw.drawMinMaxLine(this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);
+            this._draw.drawDistancePoint(data, this.cpu.getMax(), Color.valueOf("#E74C3C"));
         
-        if(data == null){
-            System.out.println("Data = null!!");
-            return;
-        }
         
         
-        int num_line = this._draw.max_num_line;
-        this._draw.clearCanvas();
-        this._draw.draw();
-        this._draw.drawMinMaxLine(data_size, this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);
-        this._draw.drawDistancePoint(data_size, data, this.cpu.getMax(), Color.RED.brighter());
-//        isDetect(isDetect);
         try{
             if(isDetect == 0){ //found
                 detect.setText("Detected!");
