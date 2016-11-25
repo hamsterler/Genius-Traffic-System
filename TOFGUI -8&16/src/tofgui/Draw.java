@@ -19,13 +19,19 @@ public class Draw {
     public int line_num;
     private final Canvas _canvas;
     private GraphicsContext _gc;
+    private String _error = "";
+    
+    public String getError(){
+        return this._error;
+    }
+    
     public Draw(int width, int high, int max_line_length, int line_num){
-        this.high = high;
-        this.width = width;
-        this.max_line_length = max_line_length;
-        this.line_num = line_num;
-        this._canvas =  new Canvas(this.width,this.high);
-        _gc = this._canvas.getGraphicsContext2D();
+            this.high = high;
+            this.width = width;
+            this.max_line_length = max_line_length;
+            this.line_num = line_num;
+            this._canvas =  new Canvas(this.width,this.high);
+            _gc = this._canvas.getGraphicsContext2D();       
     }
   
     public boolean draw(){
@@ -42,9 +48,9 @@ public class Draw {
                 _gc.stroke();            
             }
         }catch(Exception ex){
-            System.out.println("Error: " + ex.getMessage());
+            this._error = "Draw | draw(): " + ex.getMessage() ;    
             return false;
-        }            
+        }       
         return true;
     }
     
@@ -66,35 +72,12 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            System.out.println("Error: " + ex.getMessage());
+            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
             return false;
         }            
         return true;
     }
-    
-    public boolean drawEachLine(int line_num,int max_num, int distance, int max_distance){       
-        try{
-            double angle = (Math.PI/(double)4) + line_num * Math.PI/(double)(2*(max_num-1));
-            int line_length = 0;
-            if(distance >= max_distance)
-                line_length = this.max_line_length;
-            else
-                line_length = (int)(((double)distance/(double)max_distance) * this.max_line_length);
-            int y =(int)(line_length * Math.sin(angle));
-            int x = (int)(line_length * Math.cos(angle));
-            _gc.setStroke(Color.RED.brighter());
-            _gc.setLineWidth(5);
-            _gc.beginPath();
-            _gc.moveTo(setX(0), setY(0));
-            _gc.lineTo(setX(x), setY(y));          
-            _gc.stroke();
-        }catch(Exception ex){
-            System.out.println("Error: " + ex.getMessage());
-            return false;
-        }            
-        return true;            
-    }
-    
+  
     public boolean drawMinMaxLine(int[] min, int[] max, Paint color, int line_size){       
         try{
             for(int i = 0;i < this.line_num; i++){
@@ -111,7 +94,7 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            System.out.println("Error: " + ex.getMessage());
+            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
             return false;
         }            
         return true;            

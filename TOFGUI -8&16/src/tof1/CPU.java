@@ -22,19 +22,36 @@ public class CPU
     private int board_type = 3;
     public int line_num;  //<< only 8 or 16
     private String version = "";
-    public int interval = 300;
-    //update
+    public int interval = 500;
+    private boolean _serial_connect;
+    public boolean isSerialConnected(){
+        return this._serial_connect;
+    }
+    
     private int _serial_status = 0; //0 = idle, 1 = sending Data , 2 =getting Data, 3 = geting Distance
     public int getStatus(){
         return _serial_status;
     }
     
-    //
+    public boolean setPort(String port){
+        this._port = port;
+        return true;
+    }
+    
+    public CPU(){
+        this.line_num = 16;
+    }
+    
+    public void reconnect(){
+        this._serial_connect = _reconnect();
+    }
+    
+    
     public CPU(String port)
     {
         this.line_num = 16;
         this._port = port;
-        this._reconnect();
+        _serial_connect = this._reconnect();
     }
 
     public void dispose() 
@@ -105,8 +122,10 @@ public class CPU
                     return false;
                 }
             }
-        }catch (Exception ex) {ex.printStackTrace();  return false;}
-
+        }catch (Exception ex){/*ex.printStackTrace();*/  
+            this._error = "CPU | _reconnect(): " + ex.getMessage();
+            return false;
+        }
         return true;
     }
 
@@ -348,7 +367,7 @@ public class CPU
         _serial_status = 0;
         return true;
     }
-    
+
     
     //2.getData
     public boolean getData()
@@ -520,9 +539,9 @@ public class CPU
                      
             System.out.println(length);
            
-           if (length >= line_num * 2 + 6 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetDistance && buffer[line_num * 2 + 5] == (byte)'}') // slave_id & function code
+            if (length >= line_num * 2 + 6 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetDistance && buffer[line_num * 2 + 5] == (byte)'}') // slave_id & function code
             {                            
-                if (alisa.CRC.crc8(buffer, 0, 37) == 0) // check CRC8
+                if (alisa.CRC.crc8(buffer, 0, line_num * 2 + 5) == 0) // check CRC8
                 {
                     this._valid = buffer[line_num * 2 + 2];
                     this._detected = buffer[line_num * 2 + 3];
