@@ -163,7 +163,9 @@ public class CPU
 //                Max[i] = Byte.parseByte(value_max[i]);
             }
         }
-        catch (Exception ex) {}
+        catch (Exception ex) {
+            return false;
+        }
         
         return true;
     }
@@ -414,6 +416,10 @@ public class CPU
                    System.out.println("Received!!!!");
                    for (int i=0; i<length; i++)
                    {
+                       if(i >= 2 && i <= line_num + 1)
+                           Min[i-2] = buffer[i];
+                       else if(i >= line_num + 2 && i < buffer.length - 2)
+                           Max[i-(line_num + 2)] = buffer[i];
                        System.out.print((buffer[i] & 0xFF) + " ");
                    }
                    System.out.println();

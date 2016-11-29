@@ -8,15 +8,19 @@ package tofgui;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.control.CheckBox;
+import javafx.scene.text.TextFlow;
 import tof1.*;
 
 public class TOFGUIController implements Initializable {
@@ -69,6 +73,11 @@ public class TOFGUIController implements Initializable {
     @FXML private Button startButton;
     @FXML private Button updateButton;
     @FXML private Pane logo;
+    @FXML private CheckBox checkBox;
+    @FXML private TextFlow textFlow;
+    @FXML private ScrollPane scrollPane;
+    
+    @FXML private Button autoConnect;
     
     public String log = "";
     public int data_size = 16;
@@ -78,9 +87,17 @@ public class TOFGUIController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         try{
+            textFlow.getChildren().addListener(
+                (ListChangeListener<Node>) ((change) -> {
+                    textFlow.layout();
+                    scrollPane.layout();
+                    scrollPane.setVvalue(1.0f);
+                }));
+            scrollPane.setContent(textFlow);
+            
             this.cpu = new CPU();
             drawPane.setStyle("-fx-background-color: #FFFFFF");
-            _draw = new Draw(777, 323, 250, data_size);
+            _draw = new Draw(777, 323, 275, data_size);
             drawPane.getChildren().add(_draw.getCanvas());
             ImageView image = new ImageView(new Image("file:logo.jpg"));
             logo.getChildren().add(image);  
@@ -93,11 +110,52 @@ public class TOFGUIController implements Initializable {
             value6.setEditable(false);
             value7.setEditable(false);
             value8.setEditable(false);                   
-            startButton.setOnAction(this::handleStartButton);          
+            startButton.setOnAction(this::handleStartButton);    
+            autoConnect.setOnAction(this::handleAutoConnectButton);
         }catch(Exception ex){
             addLog(ex.getMessage() + '\n');
         }
     }  
+    
+    private void handleAutoConnectButton(ActionEvent event){
+        for(int i = 1; i < 20; i++){
+            this.cpu.setPort("COM" + i);
+            this.cpu.reconnect();
+        //if serial connection is fail
+            if(this.cpu.isSerialConnected()){
+                addLog("Connected!!     Port: COM" + i + '\n');
+                if(checkBox.isSelected()){
+                    if(!cpu.readConfig()){
+                        addLog("Config file not found.\nGet data from board.\n");
+                        cpu.getData();
+                    }
+                }else
+                    cpu.getData(); 
+                autoConnect.setDisable(true);
+                autoConnect.setVisible(false);
+                
+                checkBox.setVisible(false);
+                updateButton.setOnAction(this::handleUpdateButton);
+                port.setDisable(true);
+                startButton.setDisable(true);
+                startButton.setVisible(false);
+                portText.setFill(Color.valueOf("#ABB2B9"));
+                
+                cpu.getVersion();
+                this.addLog(cpu.getVersionString());  //<<show getVersion data           
+                this.data_size = cpu.line_num;  //<<8 or 16
+                this.interval.setText("" + this.cpu.interval);
+                showMinMax();
+                this.cpu.sendData();    //set min max that read from config.json to board
+                
+                Thread thread = new Thread(task);
+                thread.setDaemon(true);
+                thread.start();
+                return;
+            }
+        }
+        addLog("Error: Port Not found.\n");
+    }
     
     private void handleStartButton(ActionEvent event){
         try{
@@ -109,11 +167,19 @@ public class TOFGUIController implements Initializable {
                 addLog("Error: Wrong COM port. Try again.\n");
                 return;
             }
-        //if serial connection is correct 
+        //if serial connection is correct            
+            if(checkBox.isSelected()){
+                if(!cpu.readConfig()){
+                    addLog("Config file not found.\nGet data from board.\n");
+                    cpu.getData();
+                }
+            }
+            else
+                cpu.getData(); 
+            checkBox.setVisible(false);
             updateButton.setOnAction(this::handleUpdateButton);
-            cpu.readConfig();
             cpu.getVersion();
-            this.addLog(cpu.getVersionString());  //<<show getVersion data
+            this.addLog(cpu.getVersionString());  //<<show getVersion data           
             this.data_size = cpu.line_num;  //<<8 or 16
             this.interval.setText("" + this.cpu.interval);
             showMinMax();
@@ -281,7 +347,8 @@ public class TOFGUIController implements Initializable {
     }
     
     public void addLog(String message){
-        textArea.appendText(message);        
+//        textArea.appendText(message);    
+        textFlow.getChildren().add(new Text(message));
     }
     
     public synchronized void update() {
