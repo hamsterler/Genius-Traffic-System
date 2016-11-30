@@ -140,8 +140,8 @@ public class CPU
     public int getDevice(){ return this._device;}
     private int _device = -1;    //<<<< if _device = 3 >> 16 line, 4 >> 8line
             
-    public byte [] Min = new byte[16];
-    public byte [] Max = new byte[16];
+    public byte [] Min = new byte[32];
+    public byte [] Max = new byte[32];
     
     
     public boolean readConfig()
@@ -155,13 +155,23 @@ public class CPU
             String[] value_min = lines.get(0).split(",");
             String[] value_max = lines.get(1).split(",");
             
-            for(int i=0; i<Min.length; i++)
+            for(int i=0; i < Min.length/2; i++)
             {
-                Min[i] = (byte)Integer.parseInt(value_min[i]);
-                Max[i] = (byte)Integer.parseInt(value_max[i]);
+                Min[2*i] = (byte)(Integer.parseInt(value_min[i]) >> 8);
+                Min[2*i + 1] = (byte)(Integer.parseInt(value_min[i]));
+                
+                Max[2*i] = (byte)(Integer.parseInt(value_max[i]) >> 8);
+                Max[2*i + 1] = (byte)(Integer.parseInt(value_max[i]));
 //                Min[i] = Byte.parseByte(value_min[i]);
 //                Max[i] = Byte.parseByte(value_max[i]);
             }
+            System.out.print("\nMin = ");
+            for(int i=0; i < 16; i++)
+                System.out.print((int)Min[2*i] + " " + (int)Min[2*i + 1] + "  ");
+            System.out.print("\nMax = ");
+            for(int i=0; i < 16; i++)
+                System.out.print((int)(Max[2*i]&0xff) + " " + (int)(Max[2*i + 1]&0xff) + "  ");
+            
         }
         catch (Exception ex) {
             return false;
@@ -280,24 +290,22 @@ public class CPU
             }
         //set serial status    
             _serial_status = 1;
-            byte []data = new byte[(line_num * 2) +4];
+            byte []data = new byte[(line_num * 4) +4];
             
             data[0] = (byte)'{';     
             data[1] = CPU.SendData; //command id 
-            for(int i = 2; i < line_num + 2; i++)
+            for(int i = 0; i < line_num; i++)
             {
-                data[i] = Min[i-2];
+                data[2*i + 2] = Min[2*i];
+                data[2*i + 3] = Min[2*i + 1];
+                data[2*i + 34] = Max[2*i];
+                data[2*i + 35] = Max[2*i + 1];
             }
 
-            for(int i = line_num + 2; i < (line_num * 2) + 2; i++)
-            {
-                data[i] = Max[i-(line_num + 2)];
-            }
+            int crc8 = alisa.CRC.crc8(data, 0, (line_num * 4) + 2);
+            data[(line_num * 4) + 2] = (byte)(crc8); 
 
-            int crc8 = alisa.CRC.crc8(data, 0, (line_num * 2) + 2);
-            data[(line_num * 2) + 2] = (byte)(crc8); 
-
-            data[(line_num * 2) + 3] = (byte)'}';
+            data[(line_num * 4) + 3] = (byte)'}';
             this._out.write(data);
             System.out.println("Sent");
 
@@ -409,18 +417,21 @@ public class CPU
                      
             System.out.println(length);
            
-           if (length >= line_num * 2 + 4 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetData && buffer[line_num * 2 + 3] == (byte)'}') // slave_id & function code
+           if (length >= line_num * 4 + 4 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetData && buffer[line_num * 4 + 3] == (byte)'}') // slave_id & function code
             {                            
-                if (alisa.CRC.crc8(buffer, 0, line_num * 2 + 3) == 0) // check CRC8
+                if (alisa.CRC.crc8(buffer, 0, line_num * 4 + 3) == 0) // check CRC8
                 {
                    System.out.println("Received!!!!");
-                   for (int i=0; i<length; i++)
+                   for (int i=0; i<line_num; i++)
                    {
-                       if(i >= 2 && i <= line_num + 1)
-                           Min[i-2] = buffer[i];
-                       else if(i >= line_num + 2 && i < buffer.length - 2)
-                           Max[i-(line_num + 2)] = buffer[i];
-                       System.out.print((buffer[i] & 0xFF) + " ");
+                       Min[2*i] = buffer[2*i + 2];
+                       Min[2*i + 1] = buffer[2*i + 3];
+                       Max[2*i] = buffer[2*i + 34];
+                       Max[2*i + 1] = buffer[2*i + 35]; 
+//                       if(i >= 2 && i <= line_num + 1)
+//                           Min[i-2] = buffer[i];
+//                       else if(i >= line_num + 2 && i < buffer.length - 2)
+//                           Max[i-(line_num + 2)] = buffer[i];
                    }
                    System.out.println();
                 } 
@@ -481,14 +492,14 @@ public class CPU
     }    
     public int[] getMin(){
         int[] min = new int[this.line_num];
-        for(int i = 0;i < min.length; i++)
-            min[i] = (int)(Min[i]&0xff);
+        for(int i = 0;i < min.length ; i++)
+            min[i] = (int)((Min[2*i] & 0xff) << 8) + (int)(Min[2*i + 1] & 0xff);
         return min;
     }    
     public int[] getMax(){
         int[] max = new int[this.line_num];
         for(int i = 0;i < max.length; i++)
-            max[i] = (int)(Max[i]&0xff);
+            max[i] = (int)((Max[2*i] & 0xff) << 8) + (int)(Max[2*i + 1] & 0xff);
         return max;
     }  
     public synchronized int[] getDistanceInt()

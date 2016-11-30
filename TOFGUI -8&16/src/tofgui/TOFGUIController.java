@@ -20,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.control.CheckBox;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.TextFlow;
 import tof1.*;
 
@@ -29,7 +30,6 @@ public class TOFGUIController implements Initializable {
     @FXML public AnchorPane anchorPane;  
     @FXML private Text detect;
     @FXML private Pane drawPane;    
-    @FXML private TextArea textArea;
     
     @FXML private TextField value1;
     @FXML private TextField value2;
@@ -101,7 +101,6 @@ public class TOFGUIController implements Initializable {
             drawPane.getChildren().add(_draw.getCanvas());
             ImageView image = new ImageView(new Image("file:logo.jpg"));
             logo.getChildren().add(image);  
-            textArea.setEditable(false);
             value1.setEditable(false);
             value2.setEditable(false);
             value3.setEditable(false);
@@ -110,52 +109,54 @@ public class TOFGUIController implements Initializable {
             value6.setEditable(false);
             value7.setEditable(false);
             value8.setEditable(false);                   
+            interval.setEditable(false);
             startButton.setOnAction(this::handleStartButton);    
-            autoConnect.setOnAction(this::handleAutoConnectButton);
+//            autoConnect.setOnAction(this::handleAutoConnectButton);
+            autoConnect.setVisible(false);
         }catch(Exception ex){
-            addLog(ex.getMessage() + '\n');
+            addErrorLog(ex.getMessage() + '\n');
         }
     }  
     
-    private void handleAutoConnectButton(ActionEvent event){
-        for(int i = 1; i < 20; i++){
-            this.cpu.setPort("COM" + i);
-            this.cpu.reconnect();
-        //if serial connection is fail
-            if(this.cpu.isSerialConnected()){
-                addLog("Connected!!     Port: COM" + i + '\n');
-                if(checkBox.isSelected()){
-                    if(!cpu.readConfig()){
-                        addLog("Config file not found.\nGet data from board.\n");
-                        cpu.getData();
-                    }
-                }else
-                    cpu.getData(); 
-                autoConnect.setDisable(true);
-                autoConnect.setVisible(false);
-                
-                checkBox.setVisible(false);
-                updateButton.setOnAction(this::handleUpdateButton);
-                port.setDisable(true);
-                startButton.setDisable(true);
-                startButton.setVisible(false);
-                portText.setFill(Color.valueOf("#ABB2B9"));
-                
-                cpu.getVersion();
-                this.addLog(cpu.getVersionString());  //<<show getVersion data           
-                this.data_size = cpu.line_num;  //<<8 or 16
-                this.interval.setText("" + this.cpu.interval);
-                showMinMax();
-                this.cpu.sendData();    //set min max that read from config.json to board
-                
-                Thread thread = new Thread(task);
-                thread.setDaemon(true);
-                thread.start();
-                return;
-            }
-        }
-        addLog("Error: Port Not found.\n");
-    }
+//    private void handleAutoConnectButton(ActionEvent event){
+//        for(int i = 1; i < 20; i++){
+//            this.cpu.setPort("COM" + i);
+//            this.cpu.reconnect();
+//        //if serial connection is fail
+//            if(this.cpu.isSerialConnected()){
+//                addLog("Connected!!     Port: COM" + i + '\n');
+//                if(checkBox.isSelected()){  //read config 
+//                    if(!cpu.readConfig()){
+//                        addErrorLog("Config file not found.\nGet data from board.\n");
+//                        cpu.getData();
+//                    }
+//                }else
+//                    cpu.getData(); 
+//                autoConnect.setDisable(true);
+//                autoConnect.setVisible(false);
+//                
+//                checkBox.setVisible(false);
+//                updateButton.setOnAction(this::handleUpdateButton);
+//                port.setDisable(true);
+//                startButton.setDisable(true);
+//                startButton.setVisible(false);
+//                portText.setFill(Color.valueOf("#ABB2B9"));
+//                
+//                cpu.getVersion();
+//                this.addLog(cpu.getVersionString());  //<<show getVersion data           
+//                this.data_size = cpu.line_num;  //<<8 or 16
+//                this.interval.setText("" + this.cpu.interval);
+//                showMinMax();
+//                this.cpu.sendData();    //set min max that read from config.json to board
+//                
+//                Thread thread = new Thread(task);
+//                thread.setDaemon(true);
+//                thread.start();
+//                return;
+//            }
+//        }
+//        addErrorLog("Error: Port Not found.\n");
+//    }
     
     private void handleStartButton(ActionEvent event){
         try{
@@ -164,18 +165,21 @@ public class TOFGUIController implements Initializable {
             this.cpu.reconnect();
         //if serial connection is fail
             if(!this.cpu.isSerialConnected()){
-                addLog("Error: Wrong COM port. Try again.\n");
+                addErrorLog("Error: Wrong COM port. Try again.\n");
                 return;
             }
         //if serial connection is correct            
             if(checkBox.isSelected()){
                 if(!cpu.readConfig()){
-                    addLog("Config file not found.\nGet data from board.\n");
+                    addErrorLog("Config file not found.\nGet data from board.\n");
                     cpu.getData();
                 }
             }
             else
                 cpu.getData(); 
+//            autoConnect.setDisable(true);
+//            autoConnect.setVisible(false);
+            
             checkBox.setVisible(false);
             updateButton.setOnAction(this::handleUpdateButton);
             cpu.getVersion();
@@ -197,25 +201,9 @@ public class TOFGUIController implements Initializable {
         //--------------------------------
         
         }catch(Exception ex){
-            addLog("Error | startButton: " + ex.getMessage());
+            addErrorLog("Error | startButton: " + ex.getMessage());
         }   
     }
-    
-    Runnable run = new Runnable() {
-        @Override public void run() {          
-            while(true){
-                Platform.runLater(new Runnable() {
-                    @Override public void run() {
-                        try{             
-                            update();
-                        }catch(Exception ex){
-                            System.out.println("Error: " + ex);
-                        }
-                    }
-                }); 
-            }
-        }
-    };
     
     Task task = new Task<Void>() {
         @Override public Void call() {
@@ -262,71 +250,87 @@ public class TOFGUIController implements Initializable {
 //            }
 //        }
         
-        byte[] min = new byte[data_size];
-        byte[] max = new byte[data_size];
+        byte[] min = new byte[data_size * 2];
+        byte[] max = new byte[data_size * 2];
         try{
-            this.cpu.interval = Integer.parseInt(interval.getText().trim());
+//            this.cpu.interval = Integer.parseInt(interval.getText().trim());
+            //foe 16 line sensors
             if(data_size == 16){
                 for(int i = 0; i < 8;i++){
                     if(mn[i].isEmpty()){
-                        min[2*i] = (byte)cpu.getMin()[i];
-                        min[2*i + 1] = (byte)cpu.getMin()[i];
+                        min[4*i] = (byte)(cpu.getMin()[2*i] >> 8);
+                        min[4*i + 1] = (byte)cpu.getMin()[2*i];
+                        min[4*i + 2] = (byte)(cpu.getMin()[2*i + 1] >> 8);
+                        min[4*i + 3] = (byte)cpu.getMin()[2*i + 1];
                     }
                     else{
-                        if(Integer.parseInt(mn[i]) > 255){
-                            min[2*i] = (byte)255;
-                            min[2*i + 1] = (byte)255;     
-                        }else{
-                            min[2*i] = (byte)Integer.parseInt(mn[i]);
-                            min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
-                        }
+                        min[4*i] = (byte)(Integer.parseInt(mn[i]) >> 8);
+                        min[4*i + 1] = (byte)Integer.parseInt(mn[i]);
+                        min[4*i + 2] = (byte)(Integer.parseInt(mn[i]) >> 8);
+                        min[4*i + 3] = (byte)Integer.parseInt(mn[i]);             
                     }
                     if(mx[i].isEmpty()){
-                        max[2*i] = (byte)cpu.getMax()[i];
-                        max[2*i + 1] = (byte)cpu.getMax()[i];
+                        max[4*i] = (byte)(cpu.getMax()[2*i] >> 8);
+                        max[4*i + 1] = (byte)cpu.getMax()[2*i];
+                        max[4*i + 2] = (byte)(cpu.getMax()[2*i + 1] >> 8);
+                        max[4*i + 3] = (byte)cpu.getMax()[2*i + 1];
                     }
                     else{
-                        if(Integer.parseInt(mx[i]) > 255){
-                            max[2*i] = (byte)255;
-                            max[2*i + 1] = (byte)255;
-                        }else{
-                            max[2*i] = (byte)Integer.parseInt(mx[i]);
-                            max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
-                        }
+                        max[4*i] = (byte)(Integer.parseInt(mx[i]) >> 8);
+                        max[4*i + 1] = (byte)Integer.parseInt(mx[i]);
+                        max[4*i + 2] = (byte)(Integer.parseInt(mx[i]) >> 8);
+                        max[4*i + 3] = (byte)Integer.parseInt(mx[i]);
                     }
-                    
-                    if((int)(min[2*i] & 0xff) > (int)(max[2*i] & 0xff)){
-                        min[2*i] = (byte)cpu.getMin()[2*i];
-                        max[2*i] = (byte)cpu.getMax()[2*i];
+                    int minn = (int)((min[4*i] & 0xff) << 8) + (int)(min[4*i + 1] & 0xff);
+                    int maxx = (int)((max[4*i] & 0xff) << 8) + (int)(max[4*i + 1] & 0xff);
+                    if( minn > maxx){
+                        min[4*i] = (byte)(cpu.getMin()[2*i] >> 8);
+                        min[4*i + 1] = (byte)cpu.getMin()[2*i];
+                        max[4*i] = (byte)(cpu.getMax()[2*i] >> 8);
+                        max[4*i + 1] = (byte)cpu.getMax()[2*i];
                     }
-                    if((int)(min[2*i + 1] & 0xff) > (int)(max[2*i + 1] & 0xff)){
-                        min[2*i + 1] = (byte)cpu.getMin()[2*i + 1];
-                        max[2*i + 1] = (byte)cpu.getMax()[2*i + 1];
+                    minn = (int)((min[4*i + 2] & 0xff) << 8) + (int)(min[4*i + 3] & 0xff);
+                    maxx = (int)((max[4*i + 2] & 0xff) << 8) + (int)(max[4*i + 3] & 0xff);
+                    if(minn > maxx){
+                        min[4*i + 2] = (byte)(cpu.getMin()[2*i + 1] >> 8);
+                        min[4*i + 3] = (byte)cpu.getMin()[2*i + 1];
+                        max[4*i + 2] = (byte)(cpu.getMax()[2*i + 1] >> 8);
+                        max[4*i + 3] = (byte)cpu.getMax()[2*i + 1];
                     }
                         
                 }
+            //for 8 line sensors
             }else if(data_size == 8){
                 for(int i = 0; i < 8;i++){
                     if(mn[i].isEmpty()){
-                        min[i] = (byte)cpu.getMin()[i];
+                        min[2*i] = (byte)(cpu.getMin()[i] >> 8);
+                        min[2*i + 1] = (byte)(cpu.getMin()[i]);
                     }
                     else{
-                        min[i] = (byte)Integer.parseInt(mn[i]);
+                        min[2*i] = (byte)(Integer.parseInt(mn[i]) >> 8);    
+                        min[2*i + 1] = (byte)Integer.parseInt(mn[i]);
                     }
+                    
                     if(mx[i].isEmpty()){
-                        max[i] = (byte)cpu.getMax()[i];
+                        max[2*i] = (byte)(cpu.getMax()[i] >> 8);
+                        max[2*i + 1] = (byte)(cpu.getMax()[i]);
                     }
                     else{
-                        max[i] = (byte)Integer.parseInt(mx[i]);
+                        max[2*i] = (byte)(Integer.parseInt(mx[i]) >> 8);    
+                        max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
                     }
-                    if((min[i] & 0xff) > (max[i] & 0xff)){
-                        min[i] = (byte)cpu.getMin()[i];
-                        max[i] = (byte)cpu.getMax()[i];
+                    int minn = (int)((min[2*i] << 8) & 0xff) + (int)(min[2*i + 1]);
+                    int maxx = (int)((max[2*i] << 8) & 0xff) + (int)(max[2*i + 1]);
+                    if(minn > maxx){
+                        min[2*i] = (byte)(cpu.getMin()[i] >> 8);
+                        min[2*i + 1] = (byte)(cpu.getMin()[i]);
+                        max[2*i] = (byte)(cpu.getMax()[i] >> 8);
+                        max[2*i + 1] = (byte)(cpu.getMax()[i]);
                     }
                 }
             }
         }catch(NumberFormatException e){
-           addLog("Please enter numbers only." + '\n');
+           addErrorLog("Please enter numbers only." + '\n');
            showMinMax();
            return;
         }   
@@ -334,20 +338,25 @@ public class TOFGUIController implements Initializable {
             //--set min max and send data to board--
             this.cpu.setMinMax(min, max);
             if(!this.cpu.sendData()){
-                addLog("Updating Fail!!\n");
+                addErrorLog("Updating Fail!!\n");
                 return;
             }
             addLog("Updating Success!!\n");
             //--------------------------------------  
             showMinMax();
         }catch(Exception ex){
-            addLog("Something Wrong with sendData()\n");
+            addErrorLog("Something Wrong with sendData()\n");
             return;
         }
     }
+   
+    public void addErrorLog(String message){  
+        Text t = new Text(message);
+        t.setFill(Color.valueOf("#E74C3C"));
+        textFlow.getChildren().add(t);
+    }
     
     public void addLog(String message){
-//        textArea.appendText(message);    
         textFlow.getChildren().add(new Text(message));
     }
     
