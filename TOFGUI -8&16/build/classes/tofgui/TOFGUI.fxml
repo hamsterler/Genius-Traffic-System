@@ -58,10 +58,6 @@
                      </children>
                   </Pane>
                   <Pane fx:id="logo" opacity="0.9" prefHeight="102.0" prefWidth="127.0" GridPane.rowIndex="2" />
-                  <Pane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                     <children>
-                        <Button fx:id="autoConnect" layoutX="68.0" layoutY="147.0" mnemonicParsing="false" text="Auto Connect" />
-                     </children></Pane>
                </children>
             </GridPane>
          </children>

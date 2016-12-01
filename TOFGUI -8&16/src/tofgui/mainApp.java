@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import tof1.*;
 
 public class mainApp extends Application {
 
@@ -20,7 +19,7 @@ public class mainApp extends Application {
             loader.setLocation(mainApp.class.getResource("TOFGUI.fxml"));       
             root = loader.load();
             _controller = loader.getController();  //<<Note:must assign this after loader.load()          
-            _controller.anchorPane.setStyle("-fx-background-color:	#808B96");//#5D6D7E
+            _controller.anchorPane.setStyle("-fx-background-color:	#808B96");
 
             Scene scene = new Scene(root);
             stage.setTitle("TOFGUI");

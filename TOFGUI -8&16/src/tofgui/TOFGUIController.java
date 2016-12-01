@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tofgui;
 
 import java.net.URL;
@@ -19,10 +14,7 @@ import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.scene.control.CheckBox;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.TextFlow;
-import tof1.*;
 
 public class TOFGUIController implements Initializable {
     
@@ -75,9 +67,7 @@ public class TOFGUIController implements Initializable {
     @FXML private Pane logo;
     @FXML private CheckBox checkBox;
     @FXML private TextFlow textFlow;
-    @FXML private ScrollPane scrollPane;
-    
-    @FXML private Button autoConnect;
+    @FXML private ScrollPane scrollPane;   
     
     public String log = "";
     public int data_size = 16;
@@ -99,8 +89,10 @@ public class TOFGUIController implements Initializable {
             drawPane.setStyle("-fx-background-color: #FFFFFF");
             _draw = new Draw(777, 323, 275, data_size);
             drawPane.getChildren().add(_draw.getCanvas());
+            
             ImageView image = new ImageView(new Image("file:logo.jpg"));
             logo.getChildren().add(image);  
+            
             value1.setEditable(false);
             value2.setEditable(false);
             value3.setEditable(false);
@@ -108,55 +100,29 @@ public class TOFGUIController implements Initializable {
             value5.setEditable(false);
             value6.setEditable(false);
             value7.setEditable(false);
-            value8.setEditable(false);                   
+            value8.setEditable(false);                        
             interval.setEditable(false);
-            startButton.setOnAction(this::handleStartButton);    
-//            autoConnect.setOnAction(this::handleAutoConnectButton);
-            autoConnect.setVisible(false);
+            startButton.setOnAction(this::handleStartButton);   
+            
         }catch(Exception ex){
             addErrorLog(ex.getMessage() + '\n');
         }
     }  
     
-//    private void handleAutoConnectButton(ActionEvent event){
-//        for(int i = 1; i < 20; i++){
-//            this.cpu.setPort("COM" + i);
-//            this.cpu.reconnect();
-//        //if serial connection is fail
-//            if(this.cpu.isSerialConnected()){
-//                addLog("Connected!!     Port: COM" + i + '\n');
-//                if(checkBox.isSelected()){  //read config 
-//                    if(!cpu.readConfig()){
-//                        addErrorLog("Config file not found.\nGet data from board.\n");
-//                        cpu.getData();
-//                    }
-//                }else
-//                    cpu.getData(); 
-//                autoConnect.setDisable(true);
-//                autoConnect.setVisible(false);
-//                
-//                checkBox.setVisible(false);
-//                updateButton.setOnAction(this::handleUpdateButton);
-//                port.setDisable(true);
-//                startButton.setDisable(true);
-//                startButton.setVisible(false);
-//                portText.setFill(Color.valueOf("#ABB2B9"));
-//                
-//                cpu.getVersion();
-//                this.addLog(cpu.getVersionString());  //<<show getVersion data           
-//                this.data_size = cpu.line_num;  //<<8 or 16
-//                this.interval.setText("" + this.cpu.interval);
-//                showMinMax();
-//                this.cpu.sendData();    //set min max that read from config.json to board
-//                
-//                Thread thread = new Thread(task);
-//                thread.setDaemon(true);
-//                thread.start();
-//                return;
-//            }
-//        }
-//        addErrorLog("Error: Port Not found.\n");
-//    }
+    Task task = new Task<Void>() {
+        @Override public Void call() {
+            while(true){
+                try{             
+                    update();
+                }catch(Exception ex){
+                    System.out.println("Error: " + ex);
+                }
+                if(isCancelled())
+                    break;
+            }
+            return null;
+        }
+    };
     
     private void handleStartButton(ActionEvent event){
         try{
@@ -177,8 +143,6 @@ public class TOFGUIController implements Initializable {
             }
             else
                 cpu.getData(); 
-//            autoConnect.setDisable(true);
-//            autoConnect.setVisible(false);
             
             checkBox.setVisible(false);
             updateButton.setOnAction(this::handleUpdateButton);
@@ -197,30 +161,12 @@ public class TOFGUIController implements Initializable {
             Thread thread = new Thread(task);
             thread.setDaemon(true);
             thread.start();
-//            new Thread(task).start();
-        //--------------------------------
-        
+        //--------------------------------        
         }catch(Exception ex){
             addErrorLog("Error | startButton: " + ex.getMessage());
         }   
     }
-    
-    Task task = new Task<Void>() {
-        @Override public Void call() {
-            while(true){
-                try{             
-                    update();
-                }catch(Exception ex){
-                    System.out.println("Error: " + ex);
-                }
-                if(isCancelled())
-                    break;
-            }
-            return null;
-        }
-    };
-    
-    @FXML
+       
     private void handleUpdateButton(ActionEvent event) {
         String[] mx = new String[8];
         String[] mn = new String[8];
@@ -240,15 +186,7 @@ public class TOFGUIController implements Initializable {
         mn[4] = min5.getText().trim();
         mn[5] = min6.getText().trim();
         mn[6] = min7.getText().trim();
-        mn[7] = min8.getText().trim();
-                        
-//        for(int i = 0; i < 8;i++){
-//            if(Integer.parseInt(mn[i]) > Integer.parseInt(mx[i])){
-//                addLog("Error: Min is greater than Max.\n");
-//                showMinMax();
-//                return;
-//            }
-//        }
+        mn[7] = min8.getText().trim();                       
         
         byte[] min = new byte[data_size * 2];
         byte[] max = new byte[data_size * 2];
@@ -359,7 +297,7 @@ public class TOFGUIController implements Initializable {
     public void addLog(String message){
         textFlow.getChildren().add(new Text(message));
     }
-    
+
     public synchronized void update() {
         //recieve data 
         int[] buffer;
@@ -375,7 +313,7 @@ public class TOFGUIController implements Initializable {
             this._draw.draw();      //<< draw default line (a green one)
             this._draw.drawMinMaxLine(this.cpu.getMin(), this.cpu.getMax(), Color.valueOf("#3498DB"), 4);  //<< (blue line)
             this._draw.drawDistancePoint(data, this.cpu.getMax(), Color.valueOf("#E74C3C"));    //<<draw red dot        
-            if(isDetect == 0){ //found
+            if(isDetect == 1){ //found
                 detect.setText("Detected!");
                 detect.setFill(Color.valueOf("#E74C3C"));
             }else{
