@@ -87,8 +87,8 @@ public class TOFGUIController implements Initializable {
             
             this.cpu = new CPU();
             drawPane.setStyle("-fx-background-color: #FFFFFF");
-            _draw = new Draw(777, 323, 275, data_size);
-            drawPane.getChildren().add(_draw.getCanvas());
+//            _draw = new Draw(777, 323, 275, data_size);
+//            drawPane.getChildren().add(_draw.getCanvas());
             
             ImageView image = new ImageView(new Image("file:logo.jpg"));
             logo.getChildren().add(image);  
@@ -134,24 +134,30 @@ public class TOFGUIController implements Initializable {
                 addErrorLog("Error: Wrong COM port. Try again.\n");
                 return;
             }
-        //if serial connection is correct            
+        //if serial connection is correct  
+            cpu.getVersion();
+            this.addLog(cpu.getVersionString());  //<<show getVersion data           
+            this.data_size = cpu.line_num;  //<<8 or 16
+            
+            _draw = new Draw(777, 323, 275, data_size);
+            drawPane.getChildren().add(_draw.getCanvas());
+            
             if(checkBox.isSelected()){
                 if(!cpu.readConfig()){
                     addErrorLog("Config file not found.\nGet data from board.\n");
                     cpu.getData();
-                }
+                }else
+                    this.cpu.sendData();    //set min max that read from config.json to board
             }
             else
                 cpu.getData(); 
             
             checkBox.setVisible(false);
             updateButton.setOnAction(this::handleUpdateButton);
-            cpu.getVersion();
-            this.addLog(cpu.getVersionString());  //<<show getVersion data           
-            this.data_size = cpu.line_num;  //<<8 or 16
+            
             this.interval.setText("" + this.cpu.interval);
             showMinMax();
-            this.cpu.sendData();    //set min max that read from config.json to board
+            
 
             port.setDisable(true);
             startButton.setDisable(true);
@@ -257,8 +263,9 @@ public class TOFGUIController implements Initializable {
                         max[2*i] = (byte)(Integer.parseInt(mx[i]) >> 8);    
                         max[2*i + 1] = (byte)Integer.parseInt(mx[i]);
                     }
-                    int minn = (int)((min[2*i] << 8) & 0xff) + (int)(min[2*i + 1]);
-                    int maxx = (int)((max[2*i] << 8) & 0xff) + (int)(max[2*i + 1]);
+                    int minn = (int)((min[2*i] & 0xff) << 8) + (int)(min[2*i + 1] & 0xff);
+                    int maxx = (int)((max[2*i] & 0xff) << 8) + (int)(max[2*i + 1] & 0xff);
+                    System.out.println("minn = " + minn + "     maxx = " + maxx);
                     if(minn > maxx){
                         min[2*i] = (byte)(cpu.getMin()[i] >> 8);
                         min[2*i + 1] = (byte)(cpu.getMin()[i]);
