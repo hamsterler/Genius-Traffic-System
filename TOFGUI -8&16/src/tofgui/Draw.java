@@ -21,12 +21,12 @@ public class Draw {
     }
     
     public Draw(int width, int high, int max_line_length, int line_num){
-            this.high = high;
-            this.width = width;
-            this.max_line_length = max_line_length;
-            this.line_num = line_num;
-            this._canvas =  new Canvas(this.width,this.high);
-            _gc = this._canvas.getGraphicsContext2D();       
+        this.high = high;
+        this.width = width;
+        this.max_line_length = max_line_length;
+        this.line_num = line_num;
+        this._canvas =  new Canvas(this.width,this.high);
+        _gc = this._canvas.getGraphicsContext2D();       
     }
   
     public boolean draw(){

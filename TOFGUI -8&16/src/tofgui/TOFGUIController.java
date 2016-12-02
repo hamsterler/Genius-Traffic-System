@@ -87,8 +87,6 @@ public class TOFGUIController implements Initializable {
             
             this.cpu = new CPU();
             drawPane.setStyle("-fx-background-color: #FFFFFF");
-//            _draw = new Draw(777, 323, 275, data_size);
-//            drawPane.getChildren().add(_draw.getCanvas());
             
             ImageView image = new ImageView(new Image("file:logo.jpg"));
             logo.getChildren().add(image);  

@@ -10,10 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
-//import tofgui.*;
 public class CPU 
 {
-//    private TOFGUIController _controller;
     public static final int GetVersion = 0;
     public static final int SendData = 1;
     public static final int GetData = 2;
@@ -24,15 +22,15 @@ public class CPU
     private String version = "";
     public int interval = 500;
     private boolean _serial_connect;
+    
     public boolean isSerialConnected(){
         return this._serial_connect;
     }
-    
+
     private int _serial_status = 0; //0 = idle, 1 = sending Data , 2 =getting Data, 3 = geting Distance
     public int getStatus(){
         return _serial_status;
     }
-    
     public boolean setPort(String port){
         this._port = port;
         return true;
@@ -78,28 +76,22 @@ public class CPU
     private boolean _connected = false;
 
     //reconnect
-    private boolean _reconnect() 
-    {
-        try 
-        {
+    private boolean _reconnect(){
+        try{
             // try to disconnect
-            if (this._comm_port != null) 
-            {
+            if (this._comm_port != null){
                 this._comm_port.close();
             }
 
             // connect com port
             CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(this._port);
-            if (portIdentifier.isCurrentlyOwned()) 
-            {
+            if (portIdentifier.isCurrentlyOwned()){
                 return false;
             }
-            else 
-            {
+            else{
                 this._comm_port = portIdentifier.open(this.getClass().getName(), 6000);
 
-                if (this._comm_port instanceof SerialPort) 
-                {
+                if (this._comm_port instanceof SerialPort){
                     int timeout = 5000;
                     int baudrate = 115200;
                     
@@ -117,8 +109,7 @@ public class CPU
                     
                     System.out.println();
                 } 
-                else 
-                {
+                else{
                     return false;
                 }
             }
@@ -144,10 +135,8 @@ public class CPU
     public byte [] Max = new byte[32];
     
     
-    public boolean readConfig()
-    {
-        try
-        {
+    public boolean readConfig(){
+        try{
             String path = "config.txt";
             List<String> lines = Files.readAllLines(Paths.get(path),
                     Charset.defaultCharset());
@@ -155,8 +144,7 @@ public class CPU
             String[] value_min = lines.get(0).split(",");
             String[] value_max = lines.get(1).split(",");
             
-            for(int i=0; i < Min.length/2; i++)
-            {
+            for(int i=0; i < Min.length/2; i++){
                 Min[2*i] = (byte)(Integer.parseInt(value_min[i]) >> 8);
                 Min[2*i + 1] = (byte)(Integer.parseInt(value_min[i]));
                 
@@ -168,8 +156,7 @@ public class CPU
                 System.out.print((int)Min[2*i] + " " + (int)Min[2*i + 1] + "  ");
             System.out.print("\nMax = ");
             for(int i=0; i < 16; i++)
-                System.out.print((int)(Max[2*i]&0xff) + " " + (int)(Max[2*i + 1]&0xff) + "  ");
-            
+                System.out.print((int)(Max[2*i]&0xff) + " " + (int)(Max[2*i + 1]&0xff) + "  ");           
         }
         catch (Exception ex) {
             return false;
@@ -178,18 +165,15 @@ public class CPU
         return true;
     }
     
-
      //0.getVersion
-    public boolean getVersion()
-    {
-         //send
-        try 
-        {
-        //wait
+    public boolean getVersion(){
+        //--------------Send--------------
+        try{
+            //wait if serial is busy
             while(_serial_status != 0){
                 System.out.print("");
             }
-        //set serial status    
+            //set serial status    
             _serial_status = 1;
             
             byte[] data = new byte[4];
@@ -201,8 +185,7 @@ public class CPU
             this._out.write(data);
             System.out.println("Sent");
         } 
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getVersion | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
@@ -210,23 +193,21 @@ public class CPU
             return false;
         }
 
+        //---------------Sleep----------------
         try{  Thread.sleep(this.interval);  } 
-        catch (InterruptedException ex){ _serial_status = 0; return false;   }
+        catch (InterruptedException ex){ _serial_status = 0; return false;  }
+        //------------------------------------
         
-        //receive
-        try 
-        {
+        //--------------Receive--------------- 
+        try{
             byte[] buffer = new byte[1024];
-            int length = this._in.read(buffer);
-                     
+            int length = this._in.read(buffer);          
             System.out.println(length);
-           
-           if (length >= 7 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetVersion && buffer[6] == (byte)'}') // slave_id & function code
-            {                            
-                if (alisa.CRC.crc8(buffer, 0, 6) == 0) // check CRC8
-                {
+            if (length >= 7 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetVersion && buffer[6] == (byte)'}'){ // slave_id & function code                            
+                if (alisa.CRC.crc8(buffer, 0, 6) == 0){ // check CRC8
                     this._device = buffer[2];
                     
+                    //check for sensor type(8 or 16 line)
                     if(this._device == 3)
                         this.line_num = 16;
                     else
@@ -236,16 +217,13 @@ public class CPU
                     this._minor_cpu_version = buffer[4];
                     
                     System.out.println("Received!!!!");
-                    for (int i=0; i<length; i++)
-                    {
+                    for (int i=0; i<length; i++){
                         System.out.print((buffer[i] & 0xFF) + " ");
                     }
                     System.out.println();
-                    
                     this.version = "Device Number: " + buffer[2] + "\nMajor Version: " + (buffer[3] & 0xff) + ".0   Minor Version: " + buffer[4] + ".0\n";
                 } 
-                else 
-                {
+                else{
                     this._error = "getVersion | Read | CRC Error";
                     this._connected = false;
                     _serial_status = 0;
@@ -253,16 +231,14 @@ public class CPU
                 }
                 this._connected = true;
             } 
-            else 
-            {
+            else{
                 this._error = "getVersion | Read | Data Error";
                 this._connected = false;
                 _serial_status = 0;
                 return false;
             }   
         }
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getVersion | Read | Exception Error | " + ex.getMessage();
             this.distance = -3; 
             this._connected = false;
@@ -276,24 +252,20 @@ public class CPU
 
     
     //1.sendData
-    public boolean sendData()
-    {
-    
-         //send
-        try 
-        {
-        //wait
+    public boolean sendData(){
+        //--------------Send--------------
+        try{
+            //wait if serial is busy
             while(_serial_status != 0){
                 System.out.print("");
             }
-        //set serial status    
+            //set serial status    
             _serial_status = 1;
             byte []data = new byte[(line_num * 4) +4];
             
             data[0] = (byte)'{';     
             data[1] = CPU.SendData; //command id 
-            for(int i = 0; i < line_num; i++)
-            {
+            for(int i = 0; i < line_num; i++){
                 data[2*i + 2] = Min[2*i];
                 data[2*i + 3] = Min[2*i + 1];
                 data[2*i + (line_num *2 + 2)] = Max[2*i];
@@ -302,90 +274,76 @@ public class CPU
 
             int crc8 = alisa.CRC.crc8(data, 0, (line_num * 4) + 2);
             data[(line_num * 4) + 2] = (byte)(crc8); 
-
             data[(line_num * 4) + 3] = (byte)'}';
             this._out.write(data);
             System.out.println("Sent");
-
         } 
-        catch (Exception ex) 
-        {           
+        catch (Exception ex){           
             this._error = "sendData | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
-            
             _serial_status = 0;
             return false;
         }
 
+        //---------------Sleep----------------
         try{  Thread.sleep(this.interval);  } 
-        catch (InterruptedException ex){  _serial_status = 0; return false;  }
-    //wait
-//        while(_serial_status != 1){}
+        catch (InterruptedException ex){ _serial_status = 0; return false;  }
+        //------------------------------------
         
-        //receive
-        try 
-        {
+        //--------------Receive--------------- 
+        try{
             byte[] buffer = new byte[1024];
             int length = this._in.read(buffer);
                      
             System.out.println(length);
             
-            if (length >= 5 && buffer[0] == (byte)'{'  && buffer[1] == CPU.SendData && buffer[4] == (byte)'}') // slave_id & function code
-            {                            
-                if (alisa.CRC.crc8(buffer, 0, 4) == 0) // check CRC8
-                {
+            if (length >= 5 && buffer[0] == (byte)'{'  && buffer[1] == CPU.SendData && buffer[4] == (byte)'}'){ // slave_id & function code                            
+                if (alisa.CRC.crc8(buffer, 0, 4) == 0){ // check CRC8
                    System.out.println("Received!!!!");
-                   for (int i=0; i<length; i++)
-                   {
+                   for (int i=0; i<length; i++){
                        System.out.print((buffer[i] & 0xFF) + " ");
                    }
                    System.out.println();
                 } 
-                else 
-                {
+                else{
                     this._error = "sendData | Read | CRC Error";
                     this._connected = false;
-                //set    
                     _serial_status = 0;
                     return false;
                 }
                 this._connected = true;
             } 
-            else 
-            {
+            else{
                 this._error = "sendData | Read | Data Error";
                 this._connected = false;
-            //set
                 _serial_status = 0;
                 return false;
             }               
         }
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "sendData | Read | Exception Error | " + ex.getMessage();
             this.distance = -3; 
             this._connected = false;
             this._reconnect();
-        //set
             _serial_status = 0;
             return false;
         }
-    //set
         _serial_status = 0;
         return true;
     }
 
     
     //2.getData
-    public boolean getData()
-    {
-        while(_serial_status != 0){}
-         //send
-        try 
-        {
-            byte []data = new byte[4];
-                    
+    public boolean getData(){
+        //--------------Send--------------
+        try{
+            //wait if serial is busy
+            while(_serial_status != 0){
+                System.out.print("");
+            }
+            
+            byte []data = new byte[4]; 
             data[0] = (byte)'{';     
             data[1] = (byte)CPU.GetData; //command id 
             int crc8 = alisa.CRC.crc8(data, 0, 2);
@@ -394,8 +352,7 @@ public class CPU
             this._out.write(data);
             System.out.println("Sent");
         } 
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getData | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
@@ -403,25 +360,23 @@ public class CPU
             _serial_status = 0;
             return false;
         }
-
+        
+        //---------------Sleep----------------
         try{  Thread.sleep(this.interval);  } 
         catch (InterruptedException ex){ _serial_status = 0; return false;  }
+        //------------------------------------
         
-        //receive
-        try 
-        {
+        //--------------Receive--------------- 
+        try{
             byte[] buffer = new byte[1024];
             int length = this._in.read(buffer);
                      
             System.out.println(length);
            
-           if (length >= line_num * 4 + 4 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetData && buffer[line_num * 4 + 3] == (byte)'}') // slave_id & function code
-            {                            
-                if (alisa.CRC.crc8(buffer, 0, line_num * 4 + 3) == 0) // check CRC8
-                {
+            if (length >= line_num * 4 + 4 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetData && buffer[line_num * 4 + 3] == (byte)'}'){ // slave_id & function code                         
+                if (alisa.CRC.crc8(buffer, 0, line_num * 4 + 3) == 0){ // check CRC8
                    System.out.println("Received!!!!");
-                   for (int i=0; i<line_num; i++)
-                   {
+                   for (int i=0; i<line_num; i++){
                        Min[2*i] = buffer[2*i + 2];
                        Min[2*i + 1] = buffer[2*i + 3];
                        Max[2*i] = buffer[2*i + (line_num*2 + 2)];
@@ -429,8 +384,7 @@ public class CPU
                    }
                    System.out.println();
                 } 
-                else 
-                {
+                else{
                     this._error = "getData | Read | CRC Error";
                     this._connected = false;
                     _serial_status = 0;
@@ -438,16 +392,14 @@ public class CPU
                 }
                 this._connected = true;
             } 
-            else 
-            {
+            else{
                 this._error = "getData | Read | Data Error";
                 this._connected = false;
                 _serial_status = 0;
                 return false;
             }   
         }
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getData | Read | Exception Error | " + ex.getMessage();
             this.distance = -3; 
             this._connected = false;
@@ -464,10 +416,7 @@ public class CPU
     
     public int getDetected(){return this._detected;}
     private int _detected = -1;
-    
-     //3.getDistance
-    
-    //-------------------update----------------------
+       
     public synchronized boolean setMinMax(byte[] min, byte[] max){
         try{
             if(min == null)         
@@ -496,20 +445,17 @@ public class CPU
             max[i] = (int)((Max[2*i] & 0xff) << 8) + (int)(Max[2*i + 1] & 0xff);
         return max;
     }  
-    public synchronized int[] getDistanceInt()
-    {          
-        
-        
-         //send
-        try 
-        {
-        //---wait until serial is idle---
+    
+    //3.getDistance (new)
+    public synchronized int[] getDistanceInt(){              
+        //--------------Send--------------
+        try{
+            //wait if serial is busy
             while(_serial_status != 0){
                System.out.print("");
             }       
-        //set status
+            //set status
             _serial_status = 3;
-        //-------------------------------
         
             byte[] data = new byte[4];
             data[0] = (byte) '{';
@@ -519,46 +465,37 @@ public class CPU
             data[3] = (byte)'}';
 
             this._out.write(data);
-            System.out.println("Sent");
-            
-            
+            System.out.println("Sent");       
         } 
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getDistance | Write | Exception Error | " + ex.getMessage();
             this._connected = false;
             this._reconnect();
-        //set
             _serial_status = 0;
             return null;
         }
-        try{  Thread.sleep(this.interval);  } 
-        catch (InterruptedException  ex ){  
-            _serial_status = 0;
-            return null;  
-        }
         
-        //receive    
+        //---------------Sleep----------------
+        try{  Thread.sleep(this.interval);  }
+        catch (InterruptedException  ex ){ _serial_status = 0; return null; }
+        //------------------------------------
+        
+        //--------------Receive---------------    
         int[] result = new int[line_num + 1];
-        try 
-        {
+        try{
             byte[] buffer = new byte[1024];
             
             int length = this._in.read(buffer);
                      
             System.out.println(length);
            
-            if (length >= line_num * 2 + 6 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetDistance && buffer[line_num * 2 + 5] == (byte)'}') // slave_id & function code
-            {                            
-                if (alisa.CRC.crc8(buffer, 0, line_num * 2 + 5) == 0) // check CRC8
-                {
+            if (length >= line_num * 2 + 6 && buffer[0] == (byte)'{'  && buffer[1] == CPU.GetDistance && buffer[line_num * 2 + 5] == (byte)'}'){ // slave_id & function code                            
+                if (alisa.CRC.crc8(buffer, 0, line_num * 2 + 5) == 0){ // check CRC8
                     this._valid = buffer[line_num * 2 + 2];
                     this._detected = buffer[line_num * 2 + 3];
-                   
                     System.out.println("Received!!!!");
                     try{
-                        for (int i = 0; i < this.line_num; i++)
-                        {
+                        for (int i = 0; i < this.line_num; i++){
                             int a = 0;
                             try{
                                 a = ((int)((buffer[2*i + 2] & 0xff) << 8) + (int)(buffer[2*i + 3] & 0xff));
@@ -572,40 +509,32 @@ public class CPU
                         System.out.println();
                     }catch(Exception e){
                         System.out.println("Error: " + e.getMessage());
-                    //set
                         _serial_status = 0;
                    }
                 } 
-                else 
-                {
+                else{
                     this._error = "getDistance | Read | CRC Error";
                     this._connected = false;
-                //set
                     _serial_status = 0;
                     return null;
                 }
                 this._connected = true;
             } 
-            else 
-            {
+            else{
                 this._error = "getDistance | Read | Data Error";
                 this._connected = false;
-            //set
                 _serial_status = 0;
                 return null;
             }   
         }
-        catch (Exception ex) 
-        {
+        catch (Exception ex){
             this._error = "getDistance | Read | Exception Error | " + ex.getMessage();
             this.distance = -3; 
             this._connected = false;
             this._reconnect();
-        //set
             _serial_status = 0;
             return null;
         }
-    //serial idle
         _serial_status = 0;
         return result;
     } 
