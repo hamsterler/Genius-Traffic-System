@@ -1,3 +1,4 @@
+//16 line
 // for Arduino Pro Micro (Leonardo)
 // 
 // Pedestrian Detector 1.0-a1 (2016-10-25)
@@ -24,6 +25,10 @@ void setup()
   
   Serial1.begin(115200);  // UART (ToF Sensor)   
   Serial.begin(115200);   // USB
+  for(int i = 0; i < 16; i++){
+    _min[i] = (int)((EEPROM.read(2*i) << 8 ) & 0xff) + (int)(EEPROM.read(2*i + 1) & 0xff);
+    _max[i] = (int)((EEPROM.read(2*i + 32) << 8 ) & 0xff) + (int)(EEPROM.read(2*i + 33) & 0xff);
+  }
   
 }
 
@@ -78,11 +83,13 @@ void loop()
       if (_crc16(buf, 0, 37) == 0) // check CRC16
       {
           valid = true;
-
+//          Serial.print("Distance = ");
           for (int i=0; i<16; i++)
           {
-            _distance[i] = ((buf[3+(i*2)] & 0xFF) << 8) + (buf[4+(i*2)] & 0xFF);
-            
+            _distance[i] = ((int)(buf[3+(i*2)] & 0xFF) << 8) + (int)(buf[4+(i*2)] & 0xFF);
+//            Serial.print(_distance[i]);
+            _min[i] = (int)((EEPROM.read(2*i) << 8 ) & 0xff) + (int)(EEPROM.read(2*i + 1) & 0xff);
+            _max[i] = (int)((EEPROM.read(2*i + 32) << 8 ) & 0xff) + (int)(EEPROM.read(2*i + 33) & 0xff);
             if (_distance[i] >= _min[i] && _distance[i] <= _max[i])
             {
                detected = true;
@@ -135,6 +142,8 @@ void loop()
                   EEPROM.write(2*i + 1, buf[2*i + 3]); // min[lo]
                   EEPROM.write(32 + 2*i, buf[2*i + 34]); // max[hi]
                   EEPROM.write(32 + 2*i + 1, buf[2*i + 35]); // max[lo] 
+//                  _min[i] = (int)((buf[2*i + 2] << 8 ) & 0xff) + (int)(buf[2*i + 3] & 0xff);
+//                  _max[i] = (int)((buf[2*i + 34] << 8 ) & 0xff) + (int)(buf[2*i + 35] & 0xff);
                 }
               
                 // Send    

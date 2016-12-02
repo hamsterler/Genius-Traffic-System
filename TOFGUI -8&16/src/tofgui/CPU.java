@@ -268,8 +268,8 @@ public class CPU
             for(int i = 0; i < line_num; i++){
                 data[2*i + 2] = Min[2*i];
                 data[2*i + 3] = Min[2*i + 1];
-                data[2*i + (line_num *2 + 2)] = Max[2*i];
-                data[2*i + (line_num *2 + 3)] = Max[2*i + 1];
+                data[2*i + (line_num*2 + 2)] = Max[2*i];
+                data[2*i + (line_num*2 + 3)] = Max[2*i + 1];
             }
 
             int crc8 = alisa.CRC.crc8(data, 0, (line_num * 4) + 2);
