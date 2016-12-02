@@ -424,8 +424,8 @@ public class CPU
                    {
                        Min[2*i] = buffer[2*i + 2];
                        Min[2*i + 1] = buffer[2*i + 3];
-                       Max[2*i] = buffer[2*i + 34];
-                       Max[2*i + 1] = buffer[2*i + 35]; 
+                       Max[2*i] = buffer[2*i + (line_num*2 + 2)];
+                       Max[2*i + 1] = buffer[2*i + (line_num*2 + 3)]; 
                    }
                    System.out.println();
                 } 
