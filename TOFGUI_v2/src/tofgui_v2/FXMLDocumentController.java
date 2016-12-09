@@ -10,7 +10,9 @@ import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 
 /**
  *
@@ -18,13 +20,16 @@ import javafx.scene.control.Label;
  */
 public class FXMLDocumentController implements Initializable {
     
+   
     @FXML
-    private Label label;
-    
+    public Pane linePane;
+    @FXML
+    public Canvas canvasLine;
+    @FXML
+    public Canvas canvasCam;
     @FXML
     private void handleButtonAction(ActionEvent event) {
         System.out.println("You clicked me!");
-        label.setText("Hello World!");
     }
     
     @Override

@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane id="AnchorPane" prefHeight="200" prefWidth="320" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui_v2.FXMLDocumentController">
-    <children>
-        <Button layoutX="126" layoutY="90" text="Click Me!" onAction="#handleButtonAction" fx:id="button" />
-        <Label layoutX="126" layoutY="120" minHeight="16" minWidth="69" fx:id="label" />
-    </children>
+<AnchorPane id="AnchorPane" prefHeight="699.0" prefWidth="999.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui_v2.FXMLDocumentController">
+   <children>
+      <GridPane prefHeight="699.0" prefWidth="999.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="698.0" minWidth="10.0" prefWidth="634.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="365.0" minWidth="10.0" prefWidth="365.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints maxHeight="563.0" minHeight="10.0" prefHeight="478.0" vgrow="SOMETIMES" />
+          <RowConstraints maxHeight="197.0" minHeight="0.0" prefHeight="196.0" vgrow="SOMETIMES" />
+          <RowConstraints maxHeight="51.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Pane prefHeight="453.0" prefWidth="267.0" GridPane.columnIndex="1">
+               <children>
+                  <Canvas fx:id="canvasLine" height="235.0" layoutX="6.0" layoutY="26.0" width="332.0" />
+               </children></Pane>
+            <Pane prefHeight="536.0" prefWidth="634.0">
+               <children>
+                  <Canvas fx:id="canvasCam" height="403.0" layoutX="21.0" layoutY="23.0" width="591.0" />
+               </children>
+            </Pane>
+         </children>
+      </GridPane>
+   </children>
 </AnchorPane>

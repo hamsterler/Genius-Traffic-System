@@ -33,7 +33,7 @@ public class WebCam extends Thread {
             new Dimension(1000, 500),
         };
         this._webcam.setCustomViewSizes(d);
-        Dimension selected_dimension = d[1];
+        Dimension selected_dimension = d[3];
 
         // using standard ViewSize
 //        Dimension []d = this._webcam.getViewSizes();

@@ -20,7 +20,7 @@ public class CPU {
         //---webcam---
         
         //------------
-        _serial1 = new Serial(port1);
+//        _serial1 = new Serial(port1);
         _serial1.start();
         this._interval = 500;
         this.clearDetected();
