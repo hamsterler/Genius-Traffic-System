@@ -40,6 +40,53 @@ public class Draw {
         _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
+    public boolean drawMinMaxLine(Line[] line, Paint color, int line_size){
+        try{
+            for(int i = 0;i < this.line_num; i++){
+                double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
+                double ymin = line[i].getMin() * Math.sin(angle) * ((double)max_line_length / (double)line[i].max_distance);
+                double xmin = line[i].getMin() * Math.cos(angle) * ((double)max_line_length / (double)line[i].max_distance);
+                double xmax = line[i].getMax() * Math.cos(angle) * ((double)max_line_length / (double)line[i].max_distance);
+                double ymax = line[i].getMax() * Math.sin(angle) * ((double)max_line_length / (double)line[i].max_distance);
+                _gc.setStroke(color);     
+                _gc.setLineWidth(line_size);
+                _gc.beginPath();
+                _gc.moveTo(setX(xmin), setY(ymin));
+                _gc.lineTo(setX(xmax), setY(ymax));          
+                _gc.stroke();
+            }
+        }catch(Exception ex){
+            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+            return false;
+        }        
+        
+        return true;
+    }
+    
+    public boolean drawDistancePoint( Line[] line, Paint color){       
+        try{
+            for(int i =0; i < this.line_num; i++){
+                double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num-1));
+                double scale = (double)max_line_length / (double)line[i].max_distance;
+                int pointLength = 2;
+                double endX = line[i].distance * Math.cos(angle) * scale;
+                double endY = line[i].distance * Math.sin(angle) * scale;
+                double startY =(line[i].distance - pointLength ) * Math.sin(angle) * scale;
+                double startX = (line[i].distance - pointLength ) * Math.cos(angle) * scale;
+                _gc.setStroke(color);
+                _gc.setLineWidth(6);
+                _gc.beginPath();
+                _gc.moveTo(setX(startX), setY(startY));
+                _gc.lineTo(setX(endX), setY(endY));          
+                _gc.stroke();
+            }
+        }catch(Exception ex){
+            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+            return false;
+        }            
+        return true;
+    }
+    
     public boolean draw(){
         try{
             for(int i = 0; i < this.line_num; i++){
@@ -84,14 +131,14 @@ public class Draw {
         return true;
     }
   
-    public boolean drawMinMaxLine(int[] min, int[] max, Paint color, int line_size){       
+    public boolean drawMinMaxLine(int[] min, int[] max, int[] max_distance, Paint color, int line_size){       
         try{
             for(int i = 0;i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
-                double ymin = min[i] * Math.sin(angle) * ((double)max_line_length / (double)max[i]);
-                double xmin = min[i] * Math.cos(angle) * ((double)max_line_length / (double)max[i]);
-                double xmax = (double)max_line_length * Math.cos(angle);
-                double ymax =(double)max_line_length * Math.sin(angle);
+                double ymin = min[i] * Math.sin(angle) * ((double)max_line_length / (double)max_distance[i]);
+                double xmin = min[i] * Math.cos(angle) * ((double)max_line_length / (double)max_distance[i]);
+                double xmax = max[i] * Math.cos(angle) * ((double)max_line_length / (double)max_distance[i]);
+                double ymax = max[i] * Math.sin(angle) * ((double)max_line_length / (double)max_distance[i]);
                 _gc.setStroke(color);     
                 _gc.setLineWidth(line_size);
                 _gc.beginPath();

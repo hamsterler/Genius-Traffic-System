@@ -23,6 +23,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -113,7 +114,8 @@ public class TOFGUI_v2 extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader();
         this._pane = fxmlLoader.load(getClass().getResource("FXMLDocument.fxml").openStream());
         this._controller = (FXMLDocumentController)fxmlLoader.getController();
-
+        this._controller.ap.setStyle("-fx-background-color: #5D6D7E");
+        
         Scene scene = new Scene(this._pane);        
         stage.setScene(scene);
         stage.show();
@@ -124,7 +126,7 @@ public class TOFGUI_v2 extends Application {
         this.webcam.start();
         
         String port = "COM8";
-        this._serial = new Serial(port, _controller.canvasLine);
+        this._serial = new Serial(port, _controller.canvasLine, _controller.canvasDetect, _controller.canvasSquare);
         this._serial.start();
        
         _excelFileName = "D:/Test7.xls";//name of excel file
@@ -132,7 +134,19 @@ public class TOFGUI_v2 extends Application {
 	_wb = new HSSFWorkbook();
 	_sheet = _wb.createSheet(sheetName) ;
         
-
+        //set pause button
+        this._controller.pauseButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                 if(!_serial.pauseStatus()){
+                     _serial.pause();
+                     _controller.pauseButton.setText("Resume");
+                 }else{
+                     _serial.unpause();
+                     _controller.pauseButton.setText("Pause");
+                 }
+            }
+        });
+        
          // Stop when window is closing
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() 
         {

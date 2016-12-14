@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="699.0" prefWidth="999.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui_v2.FXMLDocumentController">
+<AnchorPane id="AnchorPane" fx:id="ap" prefHeight="699.0" prefWidth="999.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tofgui_v2.FXMLDocumentController">
    <children>
       <GridPane prefHeight="699.0" prefWidth="999.0">
         <columnConstraints>
@@ -15,18 +18,36 @@
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="365.0" minWidth="10.0" prefWidth="365.0" />
         </columnConstraints>
         <rowConstraints>
-          <RowConstraints maxHeight="563.0" minHeight="10.0" prefHeight="478.0" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="197.0" minHeight="0.0" prefHeight="196.0" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="51.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
+          <RowConstraints maxHeight="693.0" minHeight="10.0" prefHeight="693.0" vgrow="SOMETIMES" />
+          <RowConstraints maxHeight="51.0" minHeight="0.0" prefHeight="6.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Pane prefHeight="453.0" prefWidth="267.0" GridPane.columnIndex="1">
+            <Pane prefHeight="598.0" prefWidth="365.0" GridPane.columnIndex="1">
                <children>
-                  <Canvas fx:id="canvasLine" height="235.0" layoutX="6.0" layoutY="26.0" width="332.0" />
+                  <Pane fx:id="linePane" layoutX="7.0" layoutY="32.0">
+                     <children>
+                        <Canvas fx:id="canvasLine" height="235.0" layoutY="-7.0" width="338.0" />
+                     </children>
+                  </Pane>
+                  <Pane fx:id="detectPane" layoutX="7.0" layoutY="281.0" prefHeight="396.0" prefWidth="338.0">
+                     <children>
+                        <Canvas fx:id="canvasDetect" height="369.0" layoutX="14.0" layoutY="14.0" width="308.0" />
+                     </children>
+                  </Pane>
                </children></Pane>
             <Pane prefHeight="536.0" prefWidth="634.0">
                <children>
-                  <Canvas fx:id="canvasCam" height="403.0" layoutX="21.0" layoutY="23.0" width="591.0" />
+                  <StackPane layoutX="22.0" layoutY="31.0" prefWidth="591.0">
+                     <children>
+                        <Canvas fx:id="canvasCam" height="434.0" width="591.0" />
+                        <Canvas fx:id="canvasSquare" height="434.0" width="591.0" />
+                     </children>
+                  </StackPane>
+                  <Button fx:id="pauseButton" layoutX="549.0" layoutY="500.0" mnemonicParsing="false" text="Pause">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Button>
                </children>
             </Pane>
          </children>
