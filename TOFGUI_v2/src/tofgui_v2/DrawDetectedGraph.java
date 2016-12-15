@@ -7,13 +7,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 
-public class Draw2 {
+public class DrawDetectedGraph {
     public int high;
     public int width;
     public int max_line_length;
     public int line_num;
     private final Canvas _canvas;
-    private GraphicsContext _gc;
+//    private GraphicsContext _gc;
     private String _error = "";
     
     public String getError(){
@@ -21,18 +21,22 @@ public class Draw2 {
     }
     
 
-    public Draw2(Canvas canvas, int line_num){
+    public DrawDetectedGraph(Canvas canvas, int line_num){
         this.high = (int)canvas.getHeight();
         this.width = (int)canvas.getWidth();
         this.max_line_length = max_line_length;
         this.line_num = line_num;
         this._canvas =  canvas;
-        _gc = this._canvas.getGraphicsContext2D();    
-        _gc.setFill(Paint.valueOf("#ffffff"));
-        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
+//        _gc = this._canvas.getGraphicsContext2D();    
+//        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
     public boolean draw(int[][] detected){
+        
+        GraphicsContext _gc = this._canvas.getGraphicsContext2D();    
+        _gc.setFill(Paint.valueOf("#ffffff"));
+        _gc.fillRect(0,0, this._canvas.getWidth(), this._canvas.getHeight());
+        
         double xGap = this.width /(double)(detected[0].length + 1); 
         double yGap = this.high/(double)(detected.length + 1);
         try{
@@ -78,7 +82,7 @@ public class Draw2 {
         return this._canvas;
     }
     
-    public void clearCanvas(){
-        this._gc.clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
-    }
+//    public void clearCanvas(){
+//        this._gc.clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
+//    }
 }

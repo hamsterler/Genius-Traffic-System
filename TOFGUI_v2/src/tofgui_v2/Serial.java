@@ -12,6 +12,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
 
@@ -20,9 +22,8 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
-
 public class Serial extends Thread
-{ 
+{
     private String _error = "";
     public boolean exit = false;
     
@@ -39,10 +40,6 @@ public class Serial extends Thread
     private static HSSFSheet _sheet;
     private static HSSFWorkbook _wb;
     
-//    private int[] _max_distance = new int[16];
-//    private int[] _detected = new int[16]; 
-//    private int[] _pre_detected = new int[16];
-//    private int[][] _car_found = new int[10][7];
     private int _car_num = 0;
     private int _index = 0;
     private boolean _is_distance_in_use = false;
@@ -50,7 +47,7 @@ public class Serial extends Thread
 
     private int[][] _detectedLog = new int[100][16];
     private Draw _draw;
-    private Draw2 _drawDetect;
+    private DrawDetectedGraph _drawDetect;
     private DrawSquare _draw_square;
     
     //******
@@ -92,8 +89,9 @@ public class Serial extends Thread
 	_sheet = _wb.createSheet(sheetName) ;
         
         _draw = new Draw(canvasLine, 200, 16);
-        _drawDetect = new Draw2(canvasDetect, 16);
+        _drawDetect = new DrawDetectedGraph(canvasDetect, 16);
         _draw_square = new DrawSquare(canvasSquare, 16);
+         
     }
     
     public boolean connect()
@@ -162,8 +160,28 @@ public class Serial extends Thread
         this._comm_port = null;
     }
     
+    Task task = new Task<Void>() {
+        @Override public Void call() {
+//            while(true){
+                try{             
+                    run2();
+                }catch(Exception ex){
+                    System.out.println("Error: " + ex);
+                }
+//                if(isCancelled())
+//                    break;
+//            }
+            return null;
+        }
+    };
+    
     @Override
     public void run() 
+    {
+        task.run();
+    }
+//    @Override
+    public void run2() 
     {
         this.connect();
         readInputConfig();   
@@ -242,6 +260,7 @@ public class Serial extends Thread
                                         if(this._lines.line[i].max_distance < this._lines.line[i].distance)
                                             this._lines.line[i].max_distance = this._lines.line[i].distance;
                                     }
+//                                    this._lines.line[i].detected = this._lines.line[i].detect();
                                 //------------------check for detection--------------------
                                     
                                     //Case1: if first detected (change from 0 -> 1)
@@ -252,7 +271,7 @@ public class Serial extends Thread
                                         
                                         for(int j = 0; j < this._group_detect.length; j++){
                                             if(this._group_detect[j].status == 1){  //if this _car_found does not have end row yet
-                                                if(this._row - this._group_detect[j].first_row <= 5 && this._group_detect[j].first_row != -1){
+                                                if(this._row - this._group_detect[j].first_row <= 3 && this._group_detect[j].first_row != -1){
                                                     count = false;
                                                     //add line in this group
                                                     this._group_detect[j].addLine(i);
@@ -298,12 +317,13 @@ public class Serial extends Thread
                                             }
                                         }
                                     } 
-                                    _draw_square.draw(i, this._lines.line[i].detected);
+                                    _draw_square.drawLine(i, this._lines.line[i].detected);
+                                    _draw_square.drawLane(this._lines, this._lane);
                                 //-----------------------------------------------------------
                                 }  
                                 System.out.println("ok1");
                                 addDetectLog();
-                                _is_distance_in_use = false;
+//                                _is_distance_in_use = false;
                                 
                                 System.out.println(s);
                                 
@@ -338,7 +358,7 @@ public class Serial extends Thread
                                                     this._group_detect[this._index % _group_detect_num].addLine(line[j]);
                                                 }
                                             }
-                                            this._car_num += this._group_detect[i].carSeperate();
+                                            this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
                                             this._group_detect[i].status = -1;
                                         }
                                         //in case  -> ........
@@ -346,7 +366,7 @@ public class Serial extends Thread
                                         //            .||||||.
                                         //            .||||||.
                                         else{
-                                            this._car_num += this._group_detect[i].carSeperate();
+                                            this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
                                             this._group_detect[i].status = -1;
                                         }
                                     }
@@ -355,14 +375,15 @@ public class Serial extends Thread
                                
                                 
                                 System.out.println("Car count = " + this._car_num);
-                                
+                                for(int i = 0; i < this._lane.length; i++)
+                                    System.out.print("Lan" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
                                 //write excel file
-                                this.writeXLSFile(this._distance, this._row);
+//                                this.writeXLSFile(this._distance, this._row);
                                 
                                 this._row++;
                                 
                                 //draw detected graph
-                                this._drawDetect.clearCanvas();
+//                                this._drawDetect.clearCanvas();
                                 this._drawDetect.draw(this._detectedLog);
                                  
                                 //----draw line----
@@ -476,23 +497,25 @@ public class Serial extends Thread
                 this._lane[i] = new Lane(id);
                 String input = getStringJson(obj, "input"); 
                 char[] in = new char[input.length()];
-                input.getChars(0, input.length(), in, 0);
-                this._lane[i].setLine(in);
+                input.getChars(0, input.length(), in, 0);         
+                int[] in2 = new int[in.length];
                 for(int j = 0; j < in.length; j++){
                     this._lines.line[this._lines.findById("" + in[j])].setLane(this._lane[i].getId());
+                    in2[j] = this._lines.findById("" + in[j]);
                 }
+                this._lane[i].setLine(in2);
 //                System.out.println("lane " + i + ":     id = " + id + "     input = " + input + "input[0] = " + in[in.length-1] );
             }     
             //--------show lane--------
             for(int i = 0; i < this._lane.length; i++){
                 System.out.print("lane" + i + ": id = " + this._lane[i].getId());
-                for(int j = 0; j < this._lane[i].getLine().length; j++)
-                    System.out.print("  line" + j + " = " + this._lane[i].getLine()[j]);
+                for(int j = 0; j < this._lane[i].getAllLineId().length; j++)
+                    System.out.print("  line" + j + " = " + this._lane[i].getAllLineId()[j]);
                 System.out.println("");
             }
             //--------show lines-------
             for(int i = 0; i < this._lines.length(); i++)
-                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLane() );
+                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
             
         }
         catch (Exception ex) {

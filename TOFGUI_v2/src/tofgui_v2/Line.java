@@ -28,7 +28,7 @@ public class Line {
     public String getId(){
         return this._id;
     }
-    public int getLane(){
+    public int getLaneId(){
         return this._lane;
     }
     public int getMin(){

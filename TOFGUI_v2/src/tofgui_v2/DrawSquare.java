@@ -11,7 +11,7 @@ public class DrawSquare {
     public int width;
     public int line_num;
     private final Canvas _canvas;
-    private GraphicsContext _gc;
+//    private GraphicsContext _gc;
     private String _error = "";
     double xGap;
     double yGap;
@@ -35,16 +35,15 @@ public class DrawSquare {
         this.y1 = this.high/(double)5;
         this.y2 = ((double)8/(double)15) * this.high;
         
-        _gc = this._canvas.getGraphicsContext2D();    
-        _gc.setFill(Paint.valueOf("#ffffff"));
-        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
+//        _gc = this._canvas.getGraphicsContext2D();   
+//        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
-    public boolean draw(int index, boolean detected){
-        double xGap = this.width /(double)20; 
-        double yGap = this.high/(double)3;
-        
+    public boolean drawLine(int index, boolean detected){
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D(); 
+//            _gc.setLineDashes(0);
+//            _gc.fillRect(0,0, this._canvas.getWidth(), this._canvas.getHeight());
             double x1 = this.xstart + index * this.xGap + (5 * index);
             double x2 = this.xstart + (index + 1) * this.xGap + (5 * index);
             if(detected)
@@ -69,6 +68,38 @@ public class DrawSquare {
         return true;
     }
     
+    public boolean drawLane(Lines lines, Lane[] lane){
+        try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D(); 
+            _gc.setStroke(Paint.valueOf("#00bfff"));
+//            _gc.setLineDashes(5);
+            _gc.setLineWidth(0.8);
+            for(int i = 0; i < lane.length; i++){
+                int left = lane[i].most_left_line;
+                int right = lane[i].most_right_line;
+                double x1 = this.xstart + left * this.xGap + (5 * left);
+                double x2 = this.xstart + (right + 1) * this.xGap + (5 * right);
+                
+                _gc.beginPath();
+                _gc.moveTo(x1 + 8, y1 - yGap / 5);
+                _gc.lineTo(x1 - 2, y1 - yGap / 5);
+                _gc.lineTo(x1 - 2, y2 + yGap / 5 );
+                _gc.lineTo(x1 + 8, y2 + yGap / 5 );
+
+                _gc.moveTo(x2 - 8, y1 - yGap / 5);
+                _gc.lineTo(x2 + 2, y1 - yGap / 5);
+                _gc.lineTo(x2 + 2, y2 + yGap / 5);
+                _gc.lineTo(x2 - 8, y2 + yGap / 5);
+                _gc.stroke();
+            }
+            
+        }catch(Exception ex){
+//            this._error = "Draw | draw(): " + ex.getMessage() ; 
+            ex.printStackTrace();
+            return false;
+        }       
+        return true;
+    }
     
     public double setX(double x){
         return (-x) + ((double)this.width/(double)2);
@@ -82,6 +113,6 @@ public class DrawSquare {
     }
     
     public void clearCanvas(){
-        this._gc.clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
+        this._canvas.getGraphicsContext2D().clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
     }
 }

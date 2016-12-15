@@ -18,7 +18,7 @@ public class GroupDetect {
     public GroupDetect(int first_row, int end_row, int line_index){
         this.first_row = first_row;
         this.end_row = end_row;
-        this.line_num = 1;
+//        this.line_num = 1;
         this.line_num_check = 0;
         this.status = 1;
     }
@@ -37,16 +37,20 @@ public class GroupDetect {
                     this._line[j] = this._line[j - 1];
                 }
                 this._line[i] = line;
-                this.line_num++;
+                if(this.line_num < 16)
+                    this.line_num++;
                 return true;
             }
         }
         this._line[this.line_num] = line;
-        this.line_num++;
+        if(this.line_num < 16)
+            this.line_num++;
         return true;
     }
     
     public boolean removeLine(int line){
+        if(this.line_num < 0)
+            return false;
         for(int i = 0; i < this.line_num; i++){
             if(line == this._line[i]){
                 for(int j = i; j < this.line_num; j++){
@@ -63,11 +67,40 @@ public class GroupDetect {
     }
             
     
-    public int carSeperate(){
+    public int carSeperate(Lines lines, Lane[] lane){
         int count = 0;
-        for(int i = 0; i < this.line_num - 1; i++){
-            if(this._line[i + 1] - this._line[i] > 1)
+        int[] lane_count = new int[100];
+        for(int i = 0; i < lane.length; i++)
+            lane_count[lane[i].getId()] = 0;
+        int x = 0;
+        for(int i = 0; i < this.line_num ; i++){
+            if(lines.line[this._line[i]].getLaneId() != -1)
+                lane_count[lines.line[this._line[i]].getLaneId()]++;
+            if(i < this.line_num - 1 && this._line[i + 1] - this._line[i] > 1){
+                x = i + 1 - x;
                 count++;
+                for(int j = 0; j < lane.length; j++){
+                    if(lane_count[lane[j].getId()] == lane[j].getLineNum() || lane_count[lane[j].getId()] >= (double)((double)2/(double)3)*(double)lane[j].getLineNum()){
+                        lane[j].addCarcount(1);
+//                        lane_count[lane[j].getId()] = 0;
+                    }
+                    else if(lane_count[lane[j].getId()] < lane[j].getLineNum() && x == lane_count[lane[j].getId()]){
+                        lane[j].addCarcount(1);
+//                        lane_count[lane[j].getId()] = 0;                    
+                    }
+                    lane_count[lane[j].getId()] = 0;
+                }
+            }
+        }
+        for(int j = 0; j < lane.length; j++){
+            if(lane_count[lane[j].getId()] == lane[j].getLineNum() || lane_count[lane[j].getId()] >= (double)((double)2/(double)3)*(double)lane[j].getLineNum()){
+                lane[j].addCarcount(1);
+                lane_count[lane[j].getId()] = 0;
+            }
+            else if(lane_count[lane[j].getId()] < lane[j].getLineNum() && this.line_num == lane_count[lane[j].getId()]){
+                lane[j].addCarcount(1);
+                lane_count[lane[j].getId()] = 0;                    
+            }
         }
         return count + 1;
     }

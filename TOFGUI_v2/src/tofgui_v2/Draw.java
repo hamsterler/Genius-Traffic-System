@@ -13,7 +13,7 @@ public class Draw {
     public int max_line_length;
     public int line_num;
     private final Canvas _canvas;
-    private GraphicsContext _gc;
+//    private GraphicsContext _gc;
     private String _error = "";
     
     public String getError(){
@@ -26,7 +26,7 @@ public class Draw {
         this.max_line_length = max_line_length;
         this.line_num = line_num;
         this._canvas =  new Canvas(this.width,this.high);
-        _gc = this._canvas.getGraphicsContext2D();       
+//        _gc = this._canvas.getGraphicsContext2D();       
     }
     
     public Draw(Canvas canvas, int max_line_length, int line_num){
@@ -35,13 +35,13 @@ public class Draw {
         this.max_line_length = max_line_length;
         this.line_num = line_num;
         this._canvas =  canvas;
-        _gc = this._canvas.getGraphicsContext2D();    
-        _gc.setFill(Paint.valueOf("#ffffff"));
-        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
+//        _gc = this._canvas.getGraphicsContext2D();  
+//        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
     public boolean drawMinMaxLine(Line[] line, Paint color, int line_size){
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D();  
             for(int i = 0;i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
                 double ymin = line[i].getMin() * Math.sin(angle) * ((double)max_line_length / (double)line[i].max_distance);
@@ -65,6 +65,7 @@ public class Draw {
     
     public boolean drawDistancePoint( Line[] line, Paint color){       
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
             for(int i =0; i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num-1));
                 double scale = (double)max_line_length / (double)line[i].max_distance;
@@ -89,6 +90,7 @@ public class Draw {
     
     public boolean draw(){
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
             for(int i = 0; i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
                 double y = this.max_line_length * Math.sin(angle);
@@ -109,6 +111,7 @@ public class Draw {
     
     public boolean drawDistancePoint( int[] distance, int[] max, Paint color){       
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
             for(int i =0; i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num-1));
                 double scale = (double)max_line_length / (double)max[i];
@@ -133,6 +136,7 @@ public class Draw {
   
     public boolean drawMinMaxLine(int[] min, int[] max, int[] max_distance, Paint color, int line_size){       
         try{
+            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
             for(int i = 0;i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
                 double ymin = min[i] * Math.sin(angle) * ((double)max_line_length / (double)max_distance[i]);
@@ -164,6 +168,6 @@ public class Draw {
     }
     
     public void clearCanvas(){
-        this._gc.clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
+        this._canvas.getGraphicsContext2D().clearRect(0, 0, this._canvas.getWidth(), this._canvas.getHeight());
     }
 }
