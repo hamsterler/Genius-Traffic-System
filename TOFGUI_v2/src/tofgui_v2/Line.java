@@ -1,7 +1,7 @@
 package tofgui_v2;
 
 public class Line {
-    private String _id;
+    private char _id;
     private int _lane;    
     private int _min;
     private int _max;
@@ -11,21 +11,25 @@ public class Line {
     public int lastDetectRow;
     public int detect_group_num;       
     public int max_distance;
+    private boolean _isEnable;
     
-    public Line(String id, int lane, int min, int max){
+    
+    public Line(char id){
         this._id = id;
-        this._lane = lane;
-        this._min = min;
-        this._max = max;
+        this._min = -1;
+        this._max = -1;
         this.firstDetectRow = -1;
         this.lastDetectRow = -1;
         this.detected = false;
         this.distance = 0;
         this.detect_group_num = -1;
         this.max_distance = 0;
+        this._isEnable = false;
     }
-     
-    public String getId(){
+
+    
+    //---------------Getter---------------
+    public char getId(){
         return this._id;
     }
     public int getLaneId(){
@@ -37,8 +41,13 @@ public class Line {
     public int getMax(){
         return this._max;
     }
+    public boolean isEnable(){
+        return this._isEnable;
+    }
+    //------------------------------------
     
-    public boolean setId(String id){
+    //---------------Setter---------------
+    public boolean setId(char id){
         this._id = id;
         return true;
     }
@@ -46,15 +55,14 @@ public class Line {
         this._lane = lane;
         return true;
     }
-    public boolean setMin(int min){
+    public boolean setMinMax(int min, int max){
         this._min = min;
-        return true;
-    }
-    public boolean setMax(int max){
         this._max = max;
+        this._isEnable = true;
         return true;
     }
-
+    
+    //------------------------------------
     
     
     public boolean detect(){

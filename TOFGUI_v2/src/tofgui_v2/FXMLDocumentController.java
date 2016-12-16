@@ -33,6 +33,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML public Pane detectPane;
     @FXML public Pane linePane;
     @FXML public Button pauseButton;
+    @FXML public Button resetButton;
     public boolean pause = false;
     @FXML
     private void handlePauseButtonAction(ActionEvent event) {

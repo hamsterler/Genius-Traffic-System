@@ -127,14 +127,14 @@ public class TOFGUI_v2 extends Application {
         
         String port = "COM8";
         this._serial = new Serial(port, _controller.canvasLine, _controller.canvasDetect, _controller.canvasSquare);
-        this._serial.start();
+//        this._serial.start();
        
         _excelFileName = "D:/Test7.xls";//name of excel file
 	String sheetName = "Sheet1";//name of sheet
 	_wb = new HSSFWorkbook();
 	_sheet = _wb.createSheet(sheetName) ;
         
-        //set pause button
+        //---------------------------set pause button------------------------------
         this._controller.pauseButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                  if(!_serial.pauseStatus()){
@@ -146,6 +146,15 @@ public class TOFGUI_v2 extends Application {
                  }
             }
         });
+        //-------------------------------------------------------------------------
+        
+        //---------------------------set resetButton------------------------------
+        this._controller.resetButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                 _serial.resetLinesMaxDistance();
+            }
+        });
+        //-------------------------------------------------------------------------
         
          // Stop when window is closing
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() 
@@ -187,6 +196,19 @@ public class TOFGUI_v2 extends Application {
         };
         timer.start();
         
+        _serial.connect();
+        _serial.readInputConfig();   
+        _serial.readOutputConfig();
+        AnimationTimer timer2 = new AnimationTimer() 
+        {
+            @Override
+            public void handle(long now) 
+            {
+                count = now;
+                _serial.run2();
+            }
+        };
+        timer2.start();
         //writer.start();
 
     } 

@@ -22,7 +22,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
-public class Serial extends Thread
+public class Serial /*extends Thread*/
 {
     private String _error = "";
     public boolean exit = false;
@@ -53,7 +53,7 @@ public class Serial extends Thread
     //******
     private Lane[] _lane;
 //    private Line[] _line = new Line[16];
-    private Lines _lines = new Lines(16);
+    private Lines _lines;
     private int _group_detect_num = 100;
     private GroupDetect[] _group_detect = new GroupDetect[_group_detect_num];
             
@@ -75,9 +75,7 @@ public class Serial extends Thread
                 this._detectedLog[i][j] = 0;
             }
         }
-        for(int i = 0; i < this._lines.length(); i++){
-            this._lines.line[i] = new Line("A",1,0,100);
-        }
+        this._lines = new Lines();
         for(int i = 0; i < this._group_detect.length; i++)
             this._group_detect[i] = new GroupDetect();
 
@@ -154,7 +152,7 @@ public class Serial extends Thread
     public void disconnect()
     {
         this.exit = true;
-        this.interrupt();
+//        this.interrupt();
         
         if (this._comm_port != null) this._comm_port.close();
         this._comm_port = null;
@@ -175,19 +173,23 @@ public class Serial extends Thread
         }
     };
     
-    @Override
-    public void run() 
-    {
-        task.run();
-    }
+//    @Override
+//    public void run() 
+//    {
+//        if (exit)
+//        {
+//            return;
+//        }
+//        task.run();
+//    }
 //    @Override
     public void run2() 
     {
-        this.connect();
-        readInputConfig();   
-        readOutputConfig();
-        while (true)
-        {
+//        this.connect();
+//        readInputConfig();   
+//        readOutputConfig();
+//        while (true)
+//        {
             //if pause
             while(this._pause){}
             
@@ -248,6 +250,9 @@ public class Serial extends Thread
                                 _draw_square.clearCanvas();
                                 for (int i = 0; i < 16; i++)
                                 {
+                                    if(!this._lines.line[i].isEnable())
+                                        continue;
+                                    
                                     int d = ((buffer[3+(i*2)] & 0xFF) << 8) + (buffer[4+(i*2)] & 0xFF);
                                     this._lines.line[i].distance = d;
                                     this._distance[i] = d;
@@ -306,11 +311,7 @@ public class Serial extends Thread
                                                 if(this._lines.line[i].lastDetectRow > this._group_detect[j].end_row){
                                                     this._group_detect[j].end_row = this._lines.line[i].lastDetectRow;
                                                 }
-                                                //--new--
-//                                                this._group_detect[j].removeLine(i);
-//                                                if(this._group_detect[j].line_num == 0)
-//                                                    this._group_detect[j].status = 0;  //count process
-                                                //-------
+                                                
                                                 this._group_detect[j].line_num_check++;
                                                 if(this._group_detect[j].line_num == this._group_detect[j].line_num_check)
                                                     this._group_detect[j].status = 0;  //count process
@@ -321,7 +322,6 @@ public class Serial extends Thread
                                     _draw_square.drawLane(this._lines, this._lane);
                                 //-----------------------------------------------------------
                                 }  
-                                System.out.println("ok1");
                                 addDetectLog();
 //                                _is_distance_in_use = false;
                                 
@@ -350,7 +350,7 @@ public class Serial extends Thread
                                             this._group_detect[this._index % _group_detect_num].line_num = this._group_detect[i].line_num - this._group_detect[i].line_num_check;
                                             this._group_detect[this._index % _group_detect_num].line_num_check = 0;
                                             this._group_detect[this._index % _group_detect_num].status = 1;
-                                            int[] line = this._group_detect[i].getLine();
+                                            Integer[] line = this._group_detect[i].getLine();
                                             for(int j = 0; j < line.length; j++){
                                                 if(this._lines.line[line[j]].lastDetectRow == -1){
                                                     this._group_detect[i].removeLine(line[j]);
@@ -359,7 +359,8 @@ public class Serial extends Thread
                                                 }
                                             }
                                             this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
-                                            this._group_detect[i].status = -1;
+//                                            this._group_detect[i].status = -1;
+                                            this._group_detect[i].deleteGroupDetect();
                                         }
                                         //in case  -> ........
                                         //            .||.|.|.
@@ -367,7 +368,8 @@ public class Serial extends Thread
                                         //            .||||||.
                                         else{
                                             this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
-                                            this._group_detect[i].status = -1;
+//                                            this._group_detect[i].status = -1;
+                                            this._group_detect[i].deleteGroupDetect();
                                         }
                                     }
                                 }
@@ -376,7 +378,8 @@ public class Serial extends Thread
                                 
                                 System.out.println("Car count = " + this._car_num);
                                 for(int i = 0; i < this._lane.length; i++)
-                                    System.out.print("Lan" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
+                                    System.out.print("Lane" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
+                                System.out.println();
                                 //write excel file
 //                                this.writeXLSFile(this._distance, this._row);
                                 
@@ -415,7 +418,7 @@ public class Serial extends Thread
                 } 
                 catch (Exception ex2) { }
             }
-        }
+//        }
     } 
     
     public boolean addDetectLog(){
@@ -458,17 +461,19 @@ public class Serial extends Thread
             }
             int length = lines.getArray().countObjects();
             System.out.println("length = " + length);
-            for (int i = 0; i < this._lines.length(); i++){
+            for (int i = 0; i < length; i++){
                 alisa.json.Object obj = lines.getArray().getObject(i);
                 String id = getStringJson(obj, "id");
                 int min = getIntegerJson(obj, "min");
                 int max = getIntegerJson(obj, "max");
-                this._lines.line[i] = new Line(id, -1, min, max);
+//                this._lines.line[i] = new Line(id, min, max);
+                this._lines.line[this._lines.findById(id)].setMinMax(min, max);
                 System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
             }           
         }
         catch (Exception ex) {
-            System.out.println("Error");
+//            System.out.println("Error");
+            ex.printStackTrace();
             return false;
         }
         return true;
@@ -477,9 +482,9 @@ public class Serial extends Thread
     public boolean readOutputConfig(){
         try{
             alisa.json.Parser parser = new alisa.json.Parser();
-            alisa.json.Object root = parser.load("Output_config.json");
+            alisa.json.Object root = parser.load("output_config.json");
             if (root == null) { 
-                this._error = "Error on reading input_config.json file."; 
+                this._error = "Error on reading onput_config.json file."; 
                 return false; 
             }
             //lines
@@ -507,19 +512,20 @@ public class Serial extends Thread
 //                System.out.println("lane " + i + ":     id = " + id + "     input = " + input + "input[0] = " + in[in.length-1] );
             }     
             //--------show lane--------
-            for(int i = 0; i < this._lane.length; i++){
-                System.out.print("lane" + i + ": id = " + this._lane[i].getId());
-                for(int j = 0; j < this._lane[i].getAllLineId().length; j++)
-                    System.out.print("  line" + j + " = " + this._lane[i].getAllLineId()[j]);
-                System.out.println("");
-            }
+//            for(int i = 0; i < this._lane.length; i++){
+//                System.out.print("lane" + i + ": id = " + this._lane[i].getId());
+//                for(int j = 0; j < this._lane[i].getAllLineId().length; j++)
+//                    System.out.print("  line" + j + " = " + this._lane[i].getAllLineId()[j]);
+//                System.out.println("");
+//            }
             //--------show lines-------
             for(int i = 0; i < this._lines.length(); i++)
                 System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
             
         }
         catch (Exception ex) {
-            System.out.println("Error");
+//            System.out.println("Error");
+            ex.printStackTrace();
             return false;
         }
         return true;
@@ -553,7 +559,10 @@ public class Serial extends Thread
 	fileOut.close();
     }
     
-   
+    public boolean resetLinesMaxDistance(){
+        this._lines.resetMaxDistance();
+        return true;
+    }
     
     //-----------------function get value from object---------------------
     public String getStringJson(alisa.json.Object obj, String name){
