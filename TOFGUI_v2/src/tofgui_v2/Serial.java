@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -42,9 +43,7 @@ public class Serial /*extends Thread*/
     
     private int _car_num = 0;
     private int _index = 0;
-    private boolean _is_distance_in_use = false;
-   
-
+  
     private int[][] _detectedLog = new int[100][16];
     private Draw _draw;
     private DrawDetectedGraph _drawDetect;
@@ -52,11 +51,9 @@ public class Serial /*extends Thread*/
     
     //******
     private Lane[] _lane;
-//    private Line[] _line = new Line[16];
     private Lines _lines;
-    private int _group_detect_num = 100;
-    private GroupDetect[] _group_detect = new GroupDetect[_group_detect_num];
-            
+    private List<GroupDetect> _group_detect = new ArrayList<GroupDetect>();
+    
     public int[] min = new int[16];
     public int[] max = new int[16];
     
@@ -68,6 +65,8 @@ public class Serial /*extends Thread*/
     
     public Serial(String port_name, Canvas canvasLine, Canvas canvasDetect, Canvas canvasSquare)
     {
+        this._row = 0;
+        
         this._port_name = port_name;
         
         for(int i = 0; i < this._detectedLog.length; i++){
@@ -76,16 +75,13 @@ public class Serial /*extends Thread*/
             }
         }
         this._lines = new Lines();
-        for(int i = 0; i < this._group_detect.length; i++)
-            this._group_detect[i] = new GroupDetect();
-
-        
-        this._row = 0;
+   
         _excelFileName = "D:/Test8.xls";//name of excel file
 	String sheetName = "Sheet1";//name of sheet
 	_wb = new HSSFWorkbook();
 	_sheet = _wb.createSheet(sheetName) ;
         
+        //---------------------Draw Class---------------------
         _draw = new Draw(canvasLine, 200, 16);
         _drawDetect = new DrawDetectedGraph(canvasDetect, 16);
         _draw_square = new DrawSquare(canvasSquare, 16);
@@ -157,39 +153,10 @@ public class Serial /*extends Thread*/
         if (this._comm_port != null) this._comm_port.close();
         this._comm_port = null;
     }
-    
-    Task task = new Task<Void>() {
-        @Override public Void call() {
-//            while(true){
-                try{             
-                    run2();
-                }catch(Exception ex){
-                    System.out.println("Error: " + ex);
-                }
-//                if(isCancelled())
-//                    break;
-//            }
-            return null;
-        }
-    };
-    
-//    @Override
-//    public void run() 
-//    {
-//        if (exit)
-//        {
-//            return;
-//        }
-//        task.run();
-//    }
-//    @Override
+
+
     public void run2() 
     {
-//        this.connect();
-//        readInputConfig();   
-//        readOutputConfig();
-//        while (true)
-//        {
             //if pause
             while(this._pause){}
             
@@ -246,7 +213,6 @@ public class Serial /*extends Thread*/
                             {
                                 s += "distance = ";
                                 
-                                _is_distance_in_use = true;
                                 _draw_square.clearCanvas();
                                 for (int i = 0; i < 16; i++)
                                 {
@@ -266,38 +232,28 @@ public class Serial /*extends Thread*/
                                             this._lines.line[i].max_distance = this._lines.line[i].distance;
                                     }
 //                                    this._lines.line[i].detected = this._lines.line[i].detect();
+
                                 //------------------check for detection--------------------
-                                    
+                                
                                     //Case1: if first detected (change from 0 -> 1)
                                     if(this._lines.line[i].detect() && !this._lines.line[i].detected){
                                         this._lines.line[i].detected = true;
                                         this._lines.line[i].firstDetectRow = this._row;
                                         boolean count = true;
                                         
-                                        for(int j = 0; j < this._group_detect.length; j++){
-                                            if(this._group_detect[j].status == 1){  //if this _car_found does not have end row yet
-                                                if(this._row - this._group_detect[j].first_row <= 3 && this._group_detect[j].first_row != -1){
+                                        for(int j = 0; j < this._group_detect.size(); j++){
+                                            if(this._group_detect.get(j).status == 1){  //if this _car_found does not have end row yet
+                                                if(this._row - this._group_detect.get(j).first_row <= 3 && this._group_detect.get(j).first_row != -1){
                                                     count = false;
                                                     //add line in this group
-                                                    this._group_detect[j].addLine(i);
+                                                    if(!this._group_detect.get(j).addLine(i))
+                                                        count = true;
                                                 }
                                             }
                                         }
                                         // if this line is not a member of any car_found then create a new one
                                         if(count){
-//                                            while(true){
-//                                                if(this._group_detect[this._index % _group_detect_num].status == -1)
-//                                                    break;
-//                                                else
-//                                                    this._index++;
-//                                            }
-                                            this._index++;
-                                            this._group_detect[(this._index) % _group_detect_num].first_row = this._row;
-                                            this._group_detect[this._index % _group_detect_num].line_num = 0;
-                                            this._group_detect[this._index % _group_detect_num].line_num_check = 0;
-                                            this._group_detect[this._index % _group_detect_num].status = 1;
-                                            this._group_detect[this._index % _group_detect_num].addLine(i);
-                                            this._index++;
+                                            this._group_detect.add(new GroupDetect(this._row));
                                         }    
                                         
 //                                    
@@ -305,16 +261,16 @@ public class Serial /*extends Thread*/
                                     }else if(!this._lines.line[i].detect() && this._lines.line[i].detected){
                                         this._lines.line[i].detected = false;
                                         this._lines.line[i].lastDetectRow = this._row;
-                                        for(int j = 0; j < this._group_detect.length; j++ ){
-                                            if(this._group_detect[j].status == 1 && this._lines.line[i].firstDetectRow - this._group_detect[j].first_row <= 3){
+                                        for(int j = 0; j < this._group_detect.size(); j++ ){
+                                            if(this._group_detect.get(j).status == 1 && this._lines.line[i].firstDetectRow - this._group_detect.get(j).first_row <= 3){
 
-                                                if(this._lines.line[i].lastDetectRow > this._group_detect[j].end_row){
-                                                    this._group_detect[j].end_row = this._lines.line[i].lastDetectRow;
+                                                if(this._lines.line[i].lastDetectRow > this._group_detect.get(j).end_row){
+                                                    this._group_detect.get(j).end_row = this._lines.line[i].lastDetectRow;
                                                 }
                                                 
-                                                this._group_detect[j].line_num_check++;
-                                                if(this._group_detect[j].line_num == this._group_detect[j].line_num_check)
-                                                    this._group_detect[j].status = 0;  //count process
+                                                this._group_detect.get(j).line_num_check++;
+                                                if(this._group_detect.get(j).line_num == this._group_detect.get(j).line_num_check)
+                                                    this._group_detect.get(j).status = 0;  //count process
                                             }
                                         }
                                     } 
@@ -323,58 +279,51 @@ public class Serial /*extends Thread*/
                                 //-----------------------------------------------------------
                                 }  
                                 addDetectLog();
-//                                _is_distance_in_use = false;
                                 
                                 System.out.println(s);
-                                
-                                
+                              
                                 //------------------------car count process------------------------
                                 
-                                for(int i = 0; i < this._group_detect.length; i++ ){
-//                                    System.out.println("ok2");
+                                for(int i = 0; i < this._group_detect.size(); i++ ){
                                     //in case that this car_found line member does not already end at all(change from detect to non detect every line member) but the last  
-                                    if(this._group_detect[i].status == 1 && this._group_detect[i].end_row != -1){
-                                        if(this._row - this._group_detect[i].end_row > 3) {
-                                            this._group_detect[i].status = 0;
+                                    if(this._group_detect.get(i).status == 1 && this._group_detect.get(i).end_row != -1){
+                                        if(this._row - this._group_detect.get(i).end_row > 3) {
+                                            this._group_detect.get(i).status = 0;
                                         }
                                     }
                                     
-                                    if(this._group_detect[i].status == 0){
+                                    if(this._group_detect.get(i).status == 0){
                                         //in case like his -> ...|...
                                         //                    ...|...
                                         //                    |||||||
-                                        if(this._group_detect[i].line_num_check != this._group_detect[i].line_num){
-//                                            this._car_num += 1;  //count 1 car
-                                            this._group_detect[this._index % _group_detect_num].first_row = this._group_detect[i].first_row;
-                                            this._group_detect[this._index % _group_detect_num].end_row = -1;
-                                            this._group_detect[this._index % _group_detect_num].line_num = this._group_detect[i].line_num - this._group_detect[i].line_num_check;
-                                            this._group_detect[this._index % _group_detect_num].line_num_check = 0;
-                                            this._group_detect[this._index % _group_detect_num].status = 1;
-                                            Integer[] line = this._group_detect[i].getLine();
+                                        if(this._group_detect.get(i).line_num_check != this._group_detect.get(i).line_num){
+                                            int line_num = this._group_detect.get(i).line_num - this._group_detect.get(i).line_num_check;
+                                            this._group_detect.add(new GroupDetect(this._group_detect.get(i).first_row, line_num));
+                                            
+                                            Integer[] line = this._group_detect.get(i).getLine();
                                             for(int j = 0; j < line.length; j++){
                                                 if(this._lines.line[line[j]].lastDetectRow == -1){
-                                                    this._group_detect[i].removeLine(line[j]);
-                                                    this._group_detect[i].line_num_check--;
-                                                    this._group_detect[this._index % _group_detect_num].addLine(line[j]);
+                                                    this._group_detect.get(i).removeLine(line[j]);
+                                                    this._group_detect.get(i).line_num_check--;
+                                                    this._group_detect.get(this._group_detect.size() - 1).addLine(line[j]);
                                                 }
                                             }
-                                            this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
+                                            this._car_num += this._group_detect.get(i).carSeperate(this._lines, this._lane);
 //                                            this._group_detect[i].status = -1;
-                                            this._group_detect[i].deleteGroupDetect();
+                                            this._group_detect.remove(i);
                                         }
                                         //in case  -> ........
                                         //            .||.|.|.
                                         //            .||||||.
                                         //            .||||||.
                                         else{
-                                            this._car_num += this._group_detect[i].carSeperate(this._lines, this._lane);
+                                            this._car_num += this._group_detect.get(i).carSeperate(this._lines, this._lane);
 //                                            this._group_detect[i].status = -1;
-                                            this._group_detect[i].deleteGroupDetect();
+                                            this._group_detect.remove(i);
                                         }
                                     }
                                 }
                                 //-----------------------------------------------------------------
-                               
                                 
                                 System.out.println("Car count = " + this._car_num);
                                 for(int i = 0; i < this._lane.length; i++)
@@ -414,7 +363,6 @@ public class Serial /*extends Thread*/
                     ex.printStackTrace();
                     this.reconnect();
                     Thread.sleep(1000);
-                    _is_distance_in_use = false;
                 } 
                 catch (Exception ex2) { }
             }

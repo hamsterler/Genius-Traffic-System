@@ -20,10 +20,17 @@ public class GroupDetect {
         this.status = -1;
     }
     
-    public GroupDetect(int first_row, int end_row, int line_index){
+    public GroupDetect(int first_row){
         this.first_row = first_row;
-        this.end_row = end_row;
-//        this.line_num = 1;
+        this.end_row = -1;
+        this.line_num = 0;
+        this.line_num_check = 0;
+        this.status = 1;
+    }
+    public GroupDetect(int first_row, int line_num){
+        this.first_row = first_row;
+        this.end_row = -1;
+        this.line_num = line_num;
         this.line_num_check = 0;
         this.status = 1;
     }
@@ -115,13 +122,15 @@ public class GroupDetect {
     }
     
     public boolean addLine(int line){
+        if(this._line.indexOf(line) != -1)
+            return false;
         this._line.add(line);
         line_num = this._line.size();
         return true;
     }
     
     public boolean removeLine(int line){
-        this._line.remove(line);
+        this._line.remove((Object)line);
         this.line_num = this._line.size();
         return true;
     }
