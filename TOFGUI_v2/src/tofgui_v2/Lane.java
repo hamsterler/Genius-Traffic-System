@@ -36,7 +36,10 @@ public class Lane {
         this.most_right_line = x;
         return true;
     }
-    
+    public boolean resetCarcount(){
+        this._car_count = 0;
+        return true;
+    }
     public boolean addCarcount(int num){
         this._car_count += num;
         return true;

@@ -56,7 +56,8 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+//            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+            ex.printStackTrace();
             return false;
         }        
         
@@ -82,7 +83,8 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+//            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+            ex.printStackTrace();
             return false;
         }            
         return true;
@@ -103,7 +105,8 @@ public class Draw {
                 _gc.stroke();            
             }
         }catch(Exception ex){
-            this._error = "Draw | draw(): " + ex.getMessage() ;    
+//            this._error = "Draw | draw(): " + ex.getMessage() ;   
+            ex.printStackTrace();
             return false;
         }       
         return true;
@@ -128,7 +131,8 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+//            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+            ex.printStackTrace();
             return false;
         }            
         return true;
@@ -151,7 +155,8 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+//            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+            ex.printStackTrace();
             return false;
         }            
         return true;            

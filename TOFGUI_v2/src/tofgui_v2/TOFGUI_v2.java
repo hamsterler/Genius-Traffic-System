@@ -126,7 +126,7 @@ public class TOFGUI_v2 extends Application {
         this.webcam.start();
         
         String port = "COM8";
-        this._serial = new Serial(port, _controller.canvasLine, _controller.canvasDetect, _controller.canvasSquare);
+        this._serial = new Serial(port, _controller);
 //        this._serial.start();
        
         _excelFileName = "D:/Test7.xls";//name of excel file
@@ -152,6 +152,14 @@ public class TOFGUI_v2 extends Application {
         this._controller.resetButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                  _serial.resetLinesMaxDistance();
+            }
+        });
+        //-------------------------------------------------------------------------
+        
+        //---------------------------set countReset button------------------------------
+        this._controller.countResetButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                 _serial.coutReset();
             }
         });
         //-------------------------------------------------------------------------
