@@ -28,7 +28,7 @@ import javafx.scene.text.Text;
 public class FXMLDocumentController implements Initializable {
     
     @FXML public AnchorPane ap;
-    
+    @FXML public Text status; 
     @FXML public Canvas canvasLine;
     @FXML public Canvas canvasDetect;
     @FXML public Canvas canvasCam;
@@ -38,6 +38,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML public Button pauseButton;
     @FXML public Button resetButton;
     @FXML public Button countResetButton;
+    @FXML public Button loadConfigButton;
     @FXML public TextField lane1;
     @FXML public TextField lane2;
     @FXML public TextField lane3;
@@ -50,7 +51,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML public Text text4;
     @FXML public Text text5;
     @FXML public Text text6;
-    
+    @FXML public TextArea distanceTextArea;
     @FXML public TextField total;
     
     @FXML public TextField max1;

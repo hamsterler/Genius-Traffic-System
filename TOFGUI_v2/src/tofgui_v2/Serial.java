@@ -1,5 +1,7 @@
 package tofgui_v2;
 
+import tofgui_v2.Draw.*;
+import tofgui_v2.Model.*;
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -17,6 +19,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -45,7 +48,7 @@ public class Serial /*extends Thread*/
     private int _total_car = 0;
   
     private int[][] _detectedLog = new int[100][16];
-    private Draw _draw;
+    private DrawLine _draw;
     private DrawDetectedGraph _drawDetect;
     private DrawSquare _draw_square;
     private FXMLDocumentController _controller;
@@ -83,8 +86,8 @@ public class Serial /*extends Thread*/
 	_wb = new HSSFWorkbook();
 	_sheet = _wb.createSheet(sheetName) ;
         
-        //---------------------Draw Class---------------------
-        _draw = new Draw(controller.canvasLine, 200, 16);
+        //---------------------DrawLine Class---------------------
+        _draw = new DrawLine(controller.canvasLine, 200, 16);
         _drawDetect = new DrawDetectedGraph(controller.canvasDetect, 16);
         _draw_square = new DrawSquare(controller.canvasSquare, 16);
          
@@ -277,16 +280,17 @@ public class Serial /*extends Thread*/
                                                         this._group_detect.get(j).end_row = this._lines.line[i].lastDetectRow;
                                                     this._group_detect.get(j).line_num_check++;
                                                     
-                                                    if(this._group_detect.get(j).line_num == this._group_detect.get(j).line_num_check)
+                                                    if(this._group_detect.get(j).get_line_num() == this._group_detect.get(j).line_num_check)
                                                         this._group_detect.get(j).status = 0;  //count process
                                                 }
                                             }
                                         }
                                     } 
-                                    _draw_square.drawLine(i, this._lines.line[i].detected);
+                                    _draw_square.drawLine(i, this._lines.line[i].detected, this._lines.line[i].getId() + "");
                                     _draw_square.drawLane(this._lines, this._lane);
                                 //-----------------------------------------------------------
                                 }  
+                                showDistance(this._lines);
                                 addDetectLog();
                                 
                                 System.out.println(s);
@@ -306,8 +310,8 @@ public class Serial /*extends Thread*/
                                         //in case like his -> ...|...
                                         //                    ...|...
                                         //                    |||||||
-                                        if(this._group_detect.get(i).line_num_check != this._group_detect.get(i).line_num){
-                                            int line_num = this._group_detect.get(i).line_num - this._group_detect.get(i).line_num_check;
+                                        if(this._group_detect.get(i).line_num_check != this._group_detect.get(i).get_line_num()){
+                                            int line_num = this._group_detect.get(i).get_line_num() - this._group_detect.get(i).line_num_check;
                                             this._group_detect.add(new GroupDetect(this._group_detect.get(i).first_row, line_num));
                                             
                                             Integer[] line = this._group_detect.get(i).getLine();
@@ -408,7 +412,7 @@ public class Serial /*extends Thread*/
         return true;
     }
     
-    public synchronized int[] getDistance(){
+    public int[] getDistance(){
 //        while(_is_distance_in_use){}
         return this._distance;
     }
@@ -480,11 +484,17 @@ public class Serial /*extends Thread*/
 //                System.out.println("lane " + i + ":     id = " + id + "     input = " + input + "input[0] = " + in[in.length-1] );
             }    
             
-            for(int i = 0; i < this._lane.length; i++){
-                this._controller.text[i].setVisible(true);
-                this._controller.text[i].setText(this._lane[i].getId() + "");
-                this._controller.lane[i].setVisible(true);
+            for(int i = 0; i < 6; i++){
+                if(i < this._lane.length){
+                    this._controller.text[i].setVisible(true);
+                    this._controller.text[i].setText(this._lane[i].getId() + "");
+                    this._controller.lane[i].setVisible(true);
+                }else{
+                    this._controller.text[i].setVisible(false);
+                    this._controller.lane[i].setVisible(false);
+                }
             }
+            
                 
             
             //--------show lane--------
@@ -550,6 +560,31 @@ public class Serial /*extends Thread*/
         return true;
     }
     
+    public boolean showDistance(Lines lines){
+        try{
+            String text = "Line:\t\t";
+            for(int i = 0; i < lines.length(); i++){
+                text += "  " + lines.line[i].getId() + "\t";
+            }
+            text += "\nDistance:\t";
+            for(int i = 0; i < lines.line.length; i++){
+                if(lines.line[i].distance / 100 == 0){
+                    text += " ";
+                    if(lines.line[i].distance / 10 == 0){
+                        text += " ";
+                    }
+                }
+                text += lines.line[i].distance + "\t";
+            }
+            this._controller.distanceTextArea.setFont(new Font(13));
+            this._controller.distanceTextArea.setText(text);
+        }catch(Exception ex){
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    
     //-----------------function get value from object---------------------
     public String getStringJson(alisa.json.Object obj, String name){
         alisa.json.Data text = obj.findData(name);
@@ -568,5 +603,5 @@ public class Serial /*extends Thread*/
         }
         return text.getInteger();
     }    
-//--------------------------------------------------------------------
+    //--------------------------------------------------------------------
 }

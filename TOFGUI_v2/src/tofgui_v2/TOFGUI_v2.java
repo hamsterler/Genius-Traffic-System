@@ -106,8 +106,8 @@ public class TOFGUI_v2 extends Application {
         canvas.setHeight(_pane.getHeight() - 20);
     }
     
-    private Serial _serial;
-    
+//    private Serial _serial;
+    private CPU _cpu;
     @Override
     public void start(Stage stage) throws Exception 
     {
@@ -126,8 +126,8 @@ public class TOFGUI_v2 extends Application {
         this.webcam.start();
         
         String port = "COM8";
-        this._serial = new Serial(port, _controller);
-//        this._serial.start();
+//        this._serial = new Serial(port, _controller);
+        this._cpu = new CPU(_controller);
        
         _excelFileName = "D:/Test7.xls";//name of excel file
 	String sheetName = "Sheet1";//name of sheet
@@ -137,11 +137,11 @@ public class TOFGUI_v2 extends Application {
         //---------------------------set pause button------------------------------
         this._controller.pauseButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                 if(!_serial.pauseStatus()){
-                     _serial.pause();
+                 if(!_cpu.pauseStatus()){
+                     _cpu.pause();
                      _controller.pauseButton.setText("Resume");
                  }else{
-                     _serial.unpause();
+                     _cpu.unpause();
                      _controller.pauseButton.setText("Pause");
                  }
             }
@@ -151,7 +151,7 @@ public class TOFGUI_v2 extends Application {
         //---------------------------set resetButton------------------------------
         this._controller.resetButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                 _serial.resetLinesMaxDistance();
+                 _cpu.resetLinesMaxDistance();
             }
         });
         //-------------------------------------------------------------------------
@@ -159,7 +159,16 @@ public class TOFGUI_v2 extends Application {
         //---------------------------set countReset button------------------------------
         this._controller.countResetButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                 _serial.coutReset();
+                 _cpu.coutReset();
+            }
+        });
+        //-------------------------------------------------------------------------
+        
+        //---------------------------set loadConfig button------------------------------
+        this._controller.loadConfigButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                _cpu.readInputConfig();   
+                _cpu.readOutputConfig();
             }
         });
         //-------------------------------------------------------------------------
@@ -203,21 +212,13 @@ public class TOFGUI_v2 extends Application {
             }
         };
         timer.start();
-        
-        _serial.connect();
-        _serial.readInputConfig();   
-        _serial.readOutputConfig();
-        AnimationTimer timer2 = new AnimationTimer() 
-        {
-            @Override
-            public void handle(long now) 
-            {
-                count = now;
-                _serial.run2();
-            }
-        };
-        timer2.start();
-        //writer.start();
+//        Thread thread  = new Thread(){ 
+//            public void handle() 
+//            {
+//               _paint();
+//            }
+//        };
+//        thread.start();
 
     } 
 

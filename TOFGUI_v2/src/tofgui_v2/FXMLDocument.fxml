@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -65,9 +66,14 @@
                               <content>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <children>
+                                          <Text fx:id="status" layoutX="402.0" layoutY="107.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #ff3333;" textAlignment="CENTER" wrappingWidth="177.13671875">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </Text>
                                           <Pane layoutX="14.0" layoutY="29.0">
                                              <children>
-                                                <GridPane alignment="CENTER" layoutY="1.0" prefHeight="95.0" prefWidth="535.0">
+                                                <GridPane alignment="CENTER" layoutY="1.0" prefHeight="64.0" prefWidth="535.0">
                                                   <columnConstraints>
                                                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -80,7 +86,6 @@
                                                   <rowConstraints>
                                                     <RowConstraints maxHeight="78.0" minHeight="10.0" prefHeight="14.0" vgrow="SOMETIMES" />
                                                     <RowConstraints maxHeight="82.0" minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES" />
-                                                      <RowConstraints maxHeight="82.0" minHeight="10.0" prefHeight="33.0" vgrow="SOMETIMES" />
                                                   </rowConstraints>
                                                    <children>
                                                       <Text fx:id="text1" strokeType="OUTSIDE" strokeWidth="0.0" text="1" textAlignment="CENTER" wrappingWidth="76.46875" GridPane.columnIndex="1" />
@@ -91,12 +96,6 @@
                                                       <Text fx:id="text6" strokeType="OUTSIDE" strokeWidth="0.0" text="6" textAlignment="CENTER" wrappingWidth="77.46875" GridPane.columnIndex="6" />
                                                       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Car:" textAlignment="CENTER" wrappingWidth="74.13671875" GridPane.rowIndex="1" />
                                                       <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lane:" textAlignment="CENTER" wrappingWidth="74.13671875" />
-                                                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Total:" textAlignment="CENTER" wrappingWidth="74.13671875" GridPane.rowIndex="2" />
-                                                      <TextField fx:id="total" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                                         <font>
-                                                            <Font size="14.0" />
-                                                         </font>
-                                                      </TextField>
                                                       <TextField fx:id="lane1" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                                          <font>
                                                             <Font size="14.0" />
@@ -132,6 +131,13 @@
                                              </children>
                                           </Pane>
                                           <Button fx:id="countResetButton" layoutX="496.0" layoutY="132.0" mnemonicParsing="false" text="Count Reset" />
+                                          <Button fx:id="loadConfigButton" layoutX="402.0" layoutY="132.0" mnemonicParsing="false" text="Load Config" />
+                                          <Text layoutX="13.0" layoutY="116.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Total:" textAlignment="CENTER" wrappingWidth="74.13671875" />
+                                          <TextField fx:id="total" alignment="CENTER" layoutX="90.0" layoutY="95.0" prefHeight="32.0" prefWidth="76.0">
+                                             <font>
+                                                <Font size="14.0" />
+                                             </font>
+                                          </TextField>
                                        </children>
                                     </AnchorPane>
                               </content>
@@ -303,6 +309,79 @@
                                     </AnchorPane>
                               </content>
                             </Tab>
+                              <Tab text="Set Lane">
+                                <content>
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <GridPane alignment="CENTER" layoutX="14.0" layoutY="30.0" prefHeight="95.0" prefWidth="535.0">
+                                             <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                             </columnConstraints>
+                                             <rowConstraints>
+                                                <RowConstraints maxHeight="78.0" minHeight="10.0" prefHeight="14.0" vgrow="SOMETIMES" />
+                                                <RowConstraints maxHeight="82.0" minHeight="10.0" prefHeight="50.0" vgrow="SOMETIMES" />
+                                                <RowConstraints maxHeight="82.0" minHeight="10.0" prefHeight="33.0" vgrow="SOMETIMES" />
+                                             </rowConstraints>
+                                             <children>
+                                                <Text fx:id="text11" strokeType="OUTSIDE" strokeWidth="0.0" text="1" textAlignment="CENTER" wrappingWidth="76.46875" GridPane.columnIndex="1" />
+                                                <Text fx:id="text21" strokeType="OUTSIDE" strokeWidth="0.0" text="2" textAlignment="CENTER" wrappingWidth="75.46875" GridPane.columnIndex="2" />
+                                                <Text fx:id="text31" strokeType="OUTSIDE" strokeWidth="0.0" text="3" textAlignment="CENTER" wrappingWidth="76.46875" GridPane.columnIndex="3" />
+                                                <Text fx:id="text41" strokeType="OUTSIDE" strokeWidth="0.0" text="4" textAlignment="CENTER" wrappingWidth="77.46875" GridPane.columnIndex="4" />
+                                                <Text fx:id="text51" strokeType="OUTSIDE" strokeWidth="0.0" text="5" textAlignment="CENTER" wrappingWidth="76.46875" GridPane.columnIndex="5" />
+                                                <Text fx:id="text61" strokeType="OUTSIDE" strokeWidth="0.0" text="6" textAlignment="CENTER" wrappingWidth="77.46875" GridPane.columnIndex="6" />
+                                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Line" textAlignment="CENTER" wrappingWidth="74.13671875" GridPane.rowIndex="1" />
+                                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Lane:" textAlignment="CENTER" wrappingWidth="74.13671875" />
+                                                <TextField fx:id="lane11" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                                <TextField fx:id="lane21" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                                <TextField fx:id="lane31" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                                <TextField fx:id="lane41" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                                <TextField fx:id="lane51" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="5" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                                <TextField fx:id="lane61" alignment="CENTER" prefHeight="32.0" prefWidth="76.0" GridPane.columnIndex="6" GridPane.rowIndex="1">
+                                                   <font>
+                                                      <Font size="14.0" />
+                                                   </font>
+                                                </TextField>
+                                             </children>
+                                          </GridPane>
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                              </Tab>
+                              <Tab text="Distance">
+                                <content>
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <TextArea fx:id="distanceTextArea" layoutX="19.0" layoutY="21.0" prefHeight="132.0" prefWidth="553.0" />
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                              </Tab>
                           </tabs>
                         </TabPane>
                      </children>

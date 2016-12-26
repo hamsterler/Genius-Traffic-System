@@ -1,4 +1,4 @@
-package tofgui_v2;
+package tofgui_v2.Model;
 
 public class Line {
     private char _id;

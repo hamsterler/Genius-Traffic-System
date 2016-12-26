@@ -2,6 +2,7 @@ package tofgui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -107,20 +108,6 @@ public class TOFGUIController implements Initializable {
         }
     }  
     
-    Task task = new Task<Void>() {
-        @Override public Void call() {
-            while(true){
-                try{             
-                    update();
-                }catch(Exception ex){
-                    System.out.println("Error: " + ex);
-                }
-                if(isCancelled())
-                    break;
-            }
-            return null;
-        }
-    };
     
     private void handleStartButton(ActionEvent event){
         try{
@@ -162,9 +149,17 @@ public class TOFGUIController implements Initializable {
             startButton.setVisible(false);
             portText.setFill(Color.valueOf("#ABB2B9"));
 
-            Thread thread = new Thread(task);
-            thread.setDaemon(true);
-            thread.start();
+            //----start update thread----
+            AnimationTimer update_thread = new AnimationTimer() 
+            {
+                @Override
+                public void handle(long now) 
+                {
+                    update();
+                }
+            };
+            update_thread.start();
+            
         //--------------------------------        
         }catch(Exception ex){
             addErrorLog("Error | startButton: " + ex.getMessage());

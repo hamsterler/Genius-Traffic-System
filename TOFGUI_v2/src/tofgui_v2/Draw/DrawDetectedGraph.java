@@ -1,4 +1,4 @@
-package tofgui_v2;
+package tofgui_v2.Draw;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

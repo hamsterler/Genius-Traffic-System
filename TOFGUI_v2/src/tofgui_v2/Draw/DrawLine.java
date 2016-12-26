@@ -1,5 +1,6 @@
-package tofgui_v2;
+package tofgui_v2.Draw;
 
+import tofgui_v2.Model.Line;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
@@ -7,7 +8,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 
-public class Draw {
+public class DrawLine {
     public int high;
     public int width;
     public int max_line_length;
@@ -20,7 +21,7 @@ public class Draw {
         return this._error;
     }
     
-    public Draw(int width, int high, int max_line_length, int line_num){
+    public DrawLine(int width, int high, int max_line_length, int line_num){
         this.high = high;
         this.width = width;
         this.max_line_length = max_line_length;
@@ -29,7 +30,7 @@ public class Draw {
 //        _gc = this._canvas.getGraphicsContext2D();       
     }
     
-    public Draw(Canvas canvas, int max_line_length, int line_num){
+    public DrawLine(Canvas canvas, int max_line_length, int line_num){
         this.high = (int)canvas.getHeight();
         this.width = (int)canvas.getWidth();
         this.max_line_length = max_line_length;
@@ -56,7 +57,7 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-//            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+//            this._error = "DrawLine | drawMinMaxLin(): " + ex.getMessage() ;
             ex.printStackTrace();
             return false;
         }        
@@ -83,7 +84,7 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-//            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+//            this._error = "DrawLine | drawDistancePoint(): " + ex.getMessage() ;
             ex.printStackTrace();
             return false;
         }            
@@ -105,7 +106,7 @@ public class Draw {
                 _gc.stroke();            
             }
         }catch(Exception ex){
-//            this._error = "Draw | draw(): " + ex.getMessage() ;   
+//            this._error = "DrawLine | draw(): " + ex.getMessage() ;   
             ex.printStackTrace();
             return false;
         }       
@@ -131,7 +132,7 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-//            this._error = "Draw | drawDistancePoint(): " + ex.getMessage() ;
+//            this._error = "DrawLine | drawDistancePoint(): " + ex.getMessage() ;
             ex.printStackTrace();
             return false;
         }            
@@ -155,7 +156,7 @@ public class Draw {
                 _gc.stroke();
             }
         }catch(Exception ex){
-//            this._error = "Draw | drawMinMaxLin(): " + ex.getMessage() ;
+//            this._error = "DrawLine | drawMinMaxLin(): " + ex.getMessage() ;
             ex.printStackTrace();
             return false;
         }            

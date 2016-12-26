@@ -4,7 +4,6 @@
 		{ "id" : 2, "input" : "DE" },
 		{ "id" : 3, "input" : "FGH" },
 		{ "id" : 4, "input" : "IJK" },
-		{ "id" : 5, "input" : "LMN" },
-		{ "id" : 6, "input" : "OP" }
+		{ "id" : 5, "input" : "LMNOP" }
 	]
 }

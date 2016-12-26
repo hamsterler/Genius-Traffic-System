@@ -30,11 +30,11 @@ public class WebCam extends Thread {
             WebcamResolution.PAL.getSize(),
             WebcamResolution.HD720.getSize(),
             new Dimension(2000, 1000),
-            new Dimension(1000, 500),
+            new Dimension(200, 100),
         };
         this._webcam.setCustomViewSizes(d);
         Dimension selected_dimension = d[1];
-
+//        Dimension selected_dimension = new Dimension(100,50);
         // using standard ViewSize
 //        Dimension []d = this._webcam.getViewSizes();
 //        Dimension selected_dimension = d[d.length - 1];

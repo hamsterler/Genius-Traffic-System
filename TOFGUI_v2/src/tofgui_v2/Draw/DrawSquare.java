@@ -1,5 +1,7 @@
-package tofgui_v2;
+package tofgui_v2.Draw;
 
+import tofgui_v2.Model.Lines;
+import tofgui_v2.Model.Lane;
 import static java.lang.System.gc;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -45,18 +47,26 @@ public class DrawSquare {
 //        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
-    public boolean drawLine(int index, boolean detected){
+    public boolean drawLine(int index, boolean detected, String line_id){
         try{
             GraphicsContext _gc = this._canvas.getGraphicsContext2D(); 
 //            _gc.setLineDashes(0);
 //            _gc.fillRect(0,0, this._canvas.getWidth(), this._canvas.getHeight());
             double x1 = this.xstart + index * this.xGap + (gap * index);
             double x2 = this.xstart + (index + 1) * this.xGap + (gap * index);
+            String color = "";
             if(detected)
-                _gc.setStroke(Paint.valueOf("#E74C3C"));   //red
+                color = "#E74C3C";   //red
             else
-                _gc.setStroke(Paint.valueOf("#2ECC71"));
+                color = "#2ECC71";
             
+            _gc.setStroke(Paint.valueOf(color));
+            _gc.setFill(Paint.valueOf(color));
+            
+            _gc.setTextAlign(TextAlignment.CENTER);
+            _gc.setFont(new Font(12));
+            _gc.fillText(line_id + "", (double)(x1 + x2 )/(double)2 , y2 + 17);
+
             _gc.setLineWidth(3);
             _gc.beginPath();
             _gc.moveTo(x1, y1);
@@ -74,6 +84,44 @@ public class DrawSquare {
         return true;
     }
     
+    public boolean drawLine(Lines lines){
+        try{
+            for(int index = 0; index < lines.length(); index++){
+                GraphicsContext _gc = this._canvas.getGraphicsContext2D(); 
+    //            _gc.setLineDashes(0);
+    //            _gc.fillRect(0,0, this._canvas.getWidth(), this._canvas.getHeight());
+                double x1 = this.xstart + index * this.xGap + (gap * index);
+                double x2 = this.xstart + (index + 1) * this.xGap + (gap * index);
+                String color = "";
+                if(lines.line[index].detected)
+                    color = "#E74C3C";   //red
+                else
+                    color = "#2ECC71";
+
+                _gc.setStroke(Paint.valueOf(color));
+                _gc.setFill(Paint.valueOf(color));
+
+                _gc.setTextAlign(TextAlignment.CENTER);
+                _gc.setFont(new Font(12));
+                _gc.fillText(lines.line[index].getId() + "", (double)(x1 + x2 )/(double)2 , y2 + 17);
+
+                _gc.setLineWidth(3);
+                _gc.beginPath();
+                _gc.moveTo(x1, y1);
+                _gc.lineTo(x2, y1); 
+                _gc.lineTo(x2, y2);
+                _gc.lineTo(x1, y2); 
+                _gc.lineTo(x1, y1);
+                _gc.stroke();
+            }
+        }catch(Exception ex){
+//            this._error = "Draw | draw(): " + ex.getMessage() ; 
+            ex.printStackTrace();
+            return false;
+        }       
+        return true;
+    }
+    
     public boolean drawLane(Lines lines, Lane[] lane){
         try{
             GraphicsContext _gc = this._canvas.getGraphicsContext2D(); 
@@ -83,25 +131,27 @@ public class DrawSquare {
             for(int i = 0; i < lane.length; i++){
                 
                 
-                int left = lane[i].most_left_line;
-                int right = lane[i].most_right_line;
+                int left = lane[i].get_most_left_line();
+                int right = lane[i].get_most_right_line();
                 double x1 = this.xstart + left * this.xGap + (gap * left);
                 double x2 = this.xstart + (right + 1) * this.xGap + (gap * right);
                 
+                //draw text
                 _gc.setTextAlign(TextAlignment.CENTER);
                 _gc.setFont(new Font(15));
+                _gc.setFill(Paint.valueOf("#2E86C1"));
                 _gc.fillText("Lane " + lane[i].getId() + "", (double)(x1 + x2 )/(double)2 , y1 - yGap / 5 - 5);
                 
-                
+                //draw lane
                 _gc.beginPath();
                 _gc.moveTo(x1 + 8, y1 - yGap / 5);
-                _gc.lineTo(x1 - 6, y1 - yGap / 5);
-                _gc.lineTo(x1 - 6, y2 + yGap / 5 );
+                _gc.lineTo(x1 - 3, y1 - yGap / 5);
+                _gc.lineTo(x1 - 3, y2 + yGap / 5 );
                 _gc.lineTo(x1 + 8, y2 + yGap / 5 );
 
                 _gc.moveTo(x2 - 8, y1 - yGap / 5);
-                _gc.lineTo(x2 + 6, y1 - yGap / 5);
-                _gc.lineTo(x2 + 6, y2 + yGap / 5);
+                _gc.lineTo(x2 + 3, y1 - yGap / 5);
+                _gc.lineTo(x2 + 3, y2 + yGap / 5);
                 _gc.lineTo(x2 - 8, y2 + yGap / 5);
                 _gc.stroke();
             }
