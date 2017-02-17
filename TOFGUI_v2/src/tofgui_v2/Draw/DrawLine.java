@@ -6,6 +6,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 
 public class DrawLine {
@@ -91,14 +93,22 @@ public class DrawLine {
         return true;
     }
     
-    public boolean draw(){
+    public boolean drawDefaultLine(Line[] line){
         try{
             GraphicsContext _gc = this._canvas.getGraphicsContext2D();
-            for(int i = 0; i < this.line_num; i++){
+            for(int i = 0; i < line.length; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
                 double y = this.max_line_length * Math.sin(angle);
                 double x = this.max_line_length * Math.cos(angle);
-                _gc.setStroke(Color.FORESTGREEN.brighter());
+                
+                //text
+                double text_y = (this.max_line_length + 5) * Math.sin(angle);
+                double text_x = (this.max_line_length + 5) * Math.cos(angle);
+                _gc.setTextAlign(TextAlignment.CENTER);
+                _gc.setFont(new Font(10));
+                _gc.fillText(line[i].getId() + "",  setX(text_x), setY(text_y));
+                
+                _gc.setStroke(Color.FORESTGREEN.brighter());   
                 _gc.setLineWidth(1);
                 _gc.beginPath();
                 _gc.moveTo(setX(0), setY(0));
@@ -113,55 +123,6 @@ public class DrawLine {
         return true;
     }
     
-    public boolean drawDistancePoint( int[] distance, int[] max, Paint color){       
-        try{
-            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
-            for(int i =0; i < this.line_num; i++){
-                double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num-1));
-                double scale = (double)max_line_length / (double)max[i];
-                int pointLength = 2;
-                double endX = distance[i] * Math.cos(angle) * scale;
-                double endY = distance[i] * Math.sin(angle) * scale;
-                double startY =(distance[i] - pointLength ) * Math.sin(angle) * scale;
-                double startX = (distance[i] - pointLength ) * Math.cos(angle) * scale;
-                _gc.setStroke(color);
-                _gc.setLineWidth(6);
-                _gc.beginPath();
-                _gc.moveTo(setX(startX), setY(startY));
-                _gc.lineTo(setX(endX), setY(endY));          
-                _gc.stroke();
-            }
-        }catch(Exception ex){
-//            this._error = "DrawLine | drawDistancePoint(): " + ex.getMessage() ;
-            ex.printStackTrace();
-            return false;
-        }            
-        return true;
-    }
-  
-    public boolean drawMinMaxLine(int[] min, int[] max, int[] max_distance, Paint color, int line_size){       
-        try{
-            GraphicsContext _gc = this._canvas.getGraphicsContext2D();
-            for(int i = 0;i < this.line_num; i++){
-                double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num - 1));
-                double ymin = min[i] * Math.sin(angle) * ((double)max_line_length / (double)max_distance[i]);
-                double xmin = min[i] * Math.cos(angle) * ((double)max_line_length / (double)max_distance[i]);
-                double xmax = max[i] * Math.cos(angle) * ((double)max_line_length / (double)max_distance[i]);
-                double ymax = max[i] * Math.sin(angle) * ((double)max_line_length / (double)max_distance[i]);
-                _gc.setStroke(color);     
-                _gc.setLineWidth(line_size);
-                _gc.beginPath();
-                _gc.moveTo(setX(xmin), setY(ymin));
-                _gc.lineTo(setX(xmax), setY(ymax));          
-                _gc.stroke();
-            }
-        }catch(Exception ex){
-//            this._error = "DrawLine | drawMinMaxLin(): " + ex.getMessage() ;
-            ex.printStackTrace();
-            return false;
-        }            
-        return true;            
-    }
     public double setX(double x){
         return (-x) + ((double)this.width/(double)2);
     }

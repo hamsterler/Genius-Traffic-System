@@ -341,16 +341,16 @@ public class Serial /*extends Thread*/
                                     }
                                 }
                                 //-----------------------------------------------------------------
-                                
-                                System.out.println("Car count = " + this._car_num);
+                                //show
+//                                System.out.println("Car count = " + this._car_num);
                                 this._total_car = 0;
                                 for(int i = 0; i < this._lane.length; i++){
-                                    System.out.print("Lane" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
+//                                    System.out.print("Lane" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
                                     this._total_car += this._lane[i].getCarcount();
                                     this._controller.lane[i].setText(this._lane[i].getCarcount() + "");
                                 }
                                 this._controller.total.setText(this._total_car + "");
-                                System.out.println();
+//                                System.out.println();
                                 
                                 
                                 //write excel file
@@ -360,11 +360,11 @@ public class Serial /*extends Thread*/
                                 
                                 //draw detected graph
 //                                this._drawDetect.clearCanvas();
-                                this._drawDetect.draw(this._detectedLog);
+                                this._drawDetect.draw(this._detectedLog, _lines.line);
                                  
                                 //----draw line----
                                 this._draw.clearCanvas();
-                                this._draw.draw();      //<< draw default line (a green one)
+                                this._draw.drawDefaultLine(this._lines.line);      //<< draw default line (a green one)
                                 
                                 this._draw.drawMinMaxLine(this._lines.line, Color.valueOf("#3498DB"), 4);  //<< (blue line)
                                 this._draw.drawDistancePoint(this._lines.line, Color.valueOf("#E74C3C"));    //<<draw red dot
@@ -432,7 +432,7 @@ public class Serial /*extends Thread*/
                 return false;
             }
             int length = lines.getArray().countObjects();
-            System.out.println("length = " + length);
+//            System.out.println("length = " + length);
             for (int i = 0; i < length; i++){
                 alisa.json.Object obj = lines.getArray().getObject(i);
                 String id = getStringJson(obj, "id");
@@ -440,7 +440,7 @@ public class Serial /*extends Thread*/
                 int max = getIntegerJson(obj, "max");
 //                this._lines.line[i] = new Line(id, min, max);
                 this._lines.line[this._lines.findById(id)].setMinMax(min, max);
-                System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
+//                System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
             }           
         }
         catch (Exception ex) {
@@ -506,7 +506,7 @@ public class Serial /*extends Thread*/
 //            }
             //--------show lines-------
             for(int i = 0; i < this._lines.length(); i++){
-                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
+//                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
                 this._controller.max[i].setText(this._lines.line[i].getMax() + "");
                 this._controller.min[i].setText(this._lines.line[i].getMin() + "");
             }

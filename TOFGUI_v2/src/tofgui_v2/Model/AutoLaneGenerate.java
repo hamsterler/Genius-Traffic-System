@@ -2,6 +2,7 @@ package tofgui_v2.Model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class AutoLaneGenerate {
@@ -16,8 +17,8 @@ public class AutoLaneGenerate {
         _time = 0;
     }
     
-    public ArrayList<Lane> getLane(){
-        return this._lane;
+    public List<int[]> getLane(){
+        return this.lanes;
     }
     
     public void autoGenLane(ArrayList<GroupDetect> group_detect){
@@ -78,7 +79,7 @@ public class AutoLaneGenerate {
             boolean create = true;
             for(int j = 0; j < this._lane.size(); j++) {
                 if(this._time - this._lane.get(j).last_used > 30)
-                        this._lane.remove(j);
+                    this._lane.remove(j);
                 
                 if(center >= this._lane.get(j).get_most_left_line() && center <= this._lane.get(j).get_most_right_line()){
                     create = false;
@@ -120,15 +121,28 @@ public class AutoLaneGenerate {
         for (int i = 0; i < this.lanes.size(); i++)
             count += this.lanes.get(i)[2];
         
-        int deadLineCount = (int)((double)count/(double)this.lanes.size());
+        double deadLineCount = (double)count/(double)this.lanes.size();
+        //first condition: remove all lanes that car_num < the average of total car_num 
+//        1st solution
+//        for (int i = 0; i < this.lanes.size(); i++)
+//            if(this.lanes.get(i)[2] < deadLineCount)
+//                this.lanes.remove(i);
+
+        //2nd solution to remove(better than the 1st one)      
+        Iterator<int[]> it = this.lanes.iterator();
+        while(it.hasNext()){
+            int[] a = it.next();
+            if(a[2] < deadLineCount)
+                it.remove();
+        }
         
-        for (int i = 0; i < this.lanes.size(); i++)
-            if(this.lanes.get(i)[2] < deadLineCount)
-                this.lanes.remove(i);
     }
     
     public boolean collectLaneExample(int left, int right){
         try{
+            if(left == right)
+                return true;
+            
             if(this.lanes.size() > 0){
                 for (int i = 0; i < this.lanes.size(); i++) {
                     if(left == this.lanes.get(i)[0] && right == this.lanes.get(i)[1]){

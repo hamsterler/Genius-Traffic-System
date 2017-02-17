@@ -2,6 +2,8 @@ package tofgui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -149,6 +151,19 @@ public class TOFGUIController implements Initializable {
             startButton.setVisible(false);
             portText.setFill(Color.valueOf("#ABB2B9"));
 
+//            int[] buffer;
+//            Thread t = new Thread(new Runnable(){
+//               public void run(){
+//                   try {
+//                        buffer = cpu.getDistanceInt();
+//                        Thread.sleep(10);
+//                   } catch (InterruptedException ex) {
+//                       Logger.getLogger(TOFGUIController.class.getName()).log(Level.SEVERE, null, ex);
+//                   }
+//               }
+//            });
+            
+            
             //----start update thread----
             AnimationTimer update_thread = new AnimationTimer() 
             {
@@ -297,7 +312,7 @@ public class TOFGUIController implements Initializable {
     public void addLog(String message){
         textFlow.getChildren().add(new Text(message));
     }
-
+//    public int[] buffer;
     public synchronized void update() {
         //recieve data 
         int[] buffer;

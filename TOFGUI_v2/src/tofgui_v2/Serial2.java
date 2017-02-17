@@ -40,6 +40,8 @@ public class Serial2 /*extends Thread*/
     
     private int[] _distance = new int[16];
 
+    private int _interval = 100;
+    
     public Serial2(String port_name)
     {  
         this._port_name = port_name;
@@ -55,6 +57,7 @@ public class Serial2 /*extends Thread*/
             if (portIdentifier.isCurrentlyOwned()) 
             {
                 System.out.println("Error: Port is currently in use"); 
+                this._error = "Serial Connection Fail.";
                 return false;
             }
             else 
@@ -79,10 +82,12 @@ public class Serial2 /*extends Thread*/
                     this._out = serial_port.getOutputStream();
                     
                     System.out.println();
+                    this._error = "";
                 }
                 else 
                 {
                     System.out.println("Error: Only serial ports are handled by this example.");
+                    this._error = "Serial Connection Fail.";
                     return false;
                 }
             }
@@ -90,6 +95,7 @@ public class Serial2 /*extends Thread*/
         catch (Exception ex) 
         {
             ex.printStackTrace();
+            this._error = "Serial Connection Fail.";
             return false; 
         }
         
@@ -123,29 +129,87 @@ public class Serial2 /*extends Thread*/
             String s = "";
             try 
             {
+            //------------------------------1-----------------------------------    
+//                // write
+//                {
+//                    byte []b = new byte[8];
+//                    
+//                    b[0] = 1;       // slave id
+//                    
+//                    b[1] = 0x04;    // function code
+//                    
+//                    b[2] = 0;       // data start [HI]
+//                    b[3] = 16;      // data start [LO]
+//                    
+//                    b[4] = 0;       // data length [HI]
+//                    b[5] = 16;       // data length [LO]
+//                    
+//                    int crc16 = alisa.CRC.crc16(b, 0, 6);
+//                    b[6] = (byte)(crc16 >> 8); // high
+//                    b[7] = (byte)(crc16 & 0xFF); // low
+//
+//                    this._out.write(b);
+//                }                
+//                
+//                // wait for response
+//                Thread.sleep(200);
+//                
+//                // read                
+//                if (this._in.available() > 0)
+//                {
+//                    byte[] buffer = new byte[1024];
+//                    int length = 0;
+//                    while (this._in.available() > 0)
+//                    {
+//                        int l = this._in.read(buffer, length, buffer.length - length);
+//                        length += l;
+//                        Thread.sleep(1);
+//                    }
+//                    
+//                    //int length = this._in.read(buffer);
+//                    if (length >= 37)
+//                    {
+//                        if (buffer[0] == 1 && buffer[1] == 0x04) // slave_id & function code
+//                        {                            
+//                            if (alisa.CRC.crc16(buffer, 0, 37) == 0) // check CRC16
+//                            {
+////                                s += "distance = ";
+//                                
+//                                for (int i = 0; i < 16; i++)
+//                                {
+//                                    int d = ((buffer[3+(i*2)] & 0xFF) << 8) + (buffer[4+(i*2)] & 0xFF);
+//                                    this._distance[i] = d;
+////                                    s += d + ",";  
+//                                    
+//                                }
+//                                this._error = "";
+//                            }
+//                            else System.out.println("Error-3");
+//                        }
+//                        else System.out.println("Error-2");
+//                    }
+//                    else System.out.println("Error-1 (" + length + ")");
+//                }    
+            //------------------------------------------------------------------
+                
+            //------------------------------2-----------------------------------
                 // write
                 {
-                    byte []b = new byte[8];
+                    byte []b = new byte[4];
                     
                     b[0] = 1;       // slave id
                     
-                    b[1] = 0x04;    // function code
-                    
-                    b[2] = 0;       // data start [HI]
-                    b[3] = 16;      // data start [LO]
-                    
-                    b[4] = 0;       // data length [HI]
-                    b[5] = 16;       // data length [LO]
-                    
-                    int crc16 = alisa.CRC.crc16(b, 0, 6);
-                    b[6] = (byte)(crc16 >> 8); // high
-                    b[7] = (byte)(crc16 & 0xFF); // low
+                    b[1] = 0x41;    // function code
+
+                    int crc16 = alisa.CRC.crc16(b, 0, 2);
+                    b[2] = (byte)(crc16 >> 8); // high
+                    b[3] = (byte)(crc16 & 0xFF); // low
 
                     this._out.write(b);
-                }                
+                }
                 
                 // wait for response
-                Thread.sleep(200);
+                Thread.sleep(this._interval);
                 
                 // read                
                 if (this._in.available() > 0)
@@ -159,29 +223,48 @@ public class Serial2 /*extends Thread*/
                         Thread.sleep(1);
                     }
                     
-                    //int length = this._in.read(buffer);
-                    if (length >= 37)
+                    if (length == 60)
                     {
-                        if (buffer[0] == 1 && buffer[1] == 0x04) // slave_id & function code
+                        // Leddar VU
+                        if (buffer[0] == 1 && buffer[1] == 0x41 && buffer[2] == 8) // slave_id & function code & detectors
                         {                            
-                            if (alisa.CRC.crc16(buffer, 0, 37) == 0) // check CRC16
+                            if (alisa.CRC.crc16(buffer, 0, 60) == 0) // check CRC16
                             {
-                                s += "distance = ";
-                                
-                                for (int i = 0; i < 16; i++)
+                                s += "VU : distance = ";
+                                int offset = 3;
+                                for (int i=0; i<8; i++)
                                 {
-                                    int d = ((buffer[3+(i*2)] & 0xFF) << 8) + (buffer[4+(i*2)] & 0xFF);
+                                    int d = (buffer[offset] & 0xFF) + ((buffer[offset+1] & 0xFF) << 8); // [LO][HI]
                                     this._distance[i] = d;
-                                    s += d + ",";  
-                                    
-                                }
-                            }
-                            else System.out.println("Error-3");
+                                    s += d + ",";
+                                    offset += 6;
+                                }                                
+                                System.out.println(s);
+                            }                            
                         }
-                        else System.out.println("Error-2");
                     }
-                    else System.out.println("Error-1 (" + length + ")");
+                    else if (length == 91)
+                    {
+                        // Leddar M16
+                        if (buffer[0] == 1 && buffer[1] == 0x41 && buffer[2] == 16) // slave_id & function code & detectors
+                        {
+                            if (alisa.CRC.crc16(buffer, 0, 91) == 0) // check CRC16
+                            {
+                                s += "M16 : distance = ";
+                                int offset = 3;
+                                for (int i=0; i<16; i++)
+                                {
+                                    int d = (buffer[offset] & 0xFF) + ((buffer[offset+1] & 0xFF) << 8); // [LO][HI]
+                                    this._distance[i] = d;
+                                    s += d + ",";
+                                    offset += 5;
+                                }                                
+                                System.out.println(s);
+                            }     
+                        }                        
+                    }
                 }                
+            //------------------------------------------------------------------    
             } 
             catch (Exception ex) 
             {                
@@ -189,18 +272,29 @@ public class Serial2 /*extends Thread*/
                 try 
                 {
                     System.out.println("Error: " + ex.getMessage());
+                    this._error = "Serial Connection Fail";
                     ex.printStackTrace();
                     this.reconnect();
                     Thread.sleep(1000);
                 } 
                 catch (Exception ex2) { }
+                
             }
     } 
 
+    public String getError(){
+        return this._error;
+    }
     
     public int[] getDistance(){
 //        while(_is_distance_in_use){}
         return this._distance;
+    }
+    
+    public boolean updateLineDistance(Line[] line){
+        for(int i = 0; i < 16; i++)
+            line[i].distance = this._distance[i];
+        return true;
     }
 
 }

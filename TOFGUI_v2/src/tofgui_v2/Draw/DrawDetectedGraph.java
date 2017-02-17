@@ -5,6 +5,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
+import tofgui_v2.Model.Line;
 
 
 public class DrawDetectedGraph {
@@ -31,7 +34,7 @@ public class DrawDetectedGraph {
 //        _gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
     }
     
-    public boolean draw(int[][] detected){
+    public boolean draw(int[][] detected, Line[] line){
         
         GraphicsContext _gc = this._canvas.getGraphicsContext2D();    
         _gc.setFill(Paint.valueOf("#ffffff"));
@@ -40,7 +43,9 @@ public class DrawDetectedGraph {
         double xGap = this.width /(double)(detected[0].length + 1); 
         double yGap = this.high/(double)(detected.length + 1);
         try{
+            //default line
             for(int i = 0; i < detected[0].length; i++){
+                
                 _gc.setStroke(Color.FORESTGREEN.brighter());
                 _gc.setLineWidth(1);
                 _gc.beginPath();
@@ -62,6 +67,7 @@ public class DrawDetectedGraph {
                     }
                 }
             }
+            
         }catch(Exception ex){
 //            this._error = "Draw | draw(): " + ex.getMessage() ;    
             ex.printStackTrace();

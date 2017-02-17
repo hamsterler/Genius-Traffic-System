@@ -65,7 +65,9 @@ public class GroupDetect {
     }
     
     public int get_most_left_line(){
-        return this._line.get(0);
+        if(this._line.size() > 0)
+            return this._line.get(0);
+        return -1;
     }
     
     public int get_most_right_line(){
@@ -151,16 +153,6 @@ public class GroupDetect {
             
 //        }
         
-//        for(int j = 0; j < lane.length; j++){
-//            if(lane_count[lane[j].getId()] == lane[j].getLineNum() || lane_count[lane[j].getId()] >= (double)((double)2/(double)3)*(double)lane[j].getLineNum()){
-//                lane[j].addCarcount(1);
-//                lane_count[lane[j].getId()] = 0;
-//            }
-//            else if(lane_count[lane[j].getId()] < lane[j].getLineNum() && this.line_num == lane_count[lane[j].getId()]){
-//                lane[j].addCarcount(1);
-//                lane_count[lane[j].getId()] = 0;                    
-//            }
-//        }
         return count + 1;
     }
     

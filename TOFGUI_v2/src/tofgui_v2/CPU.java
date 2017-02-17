@@ -1,8 +1,11 @@
-
+ 
 package tofgui_v2;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.AnimationTimer;
 import javafx.concurrent.Task;
 import tofgui_v2.Draw.*;
@@ -28,6 +31,7 @@ public class CPU {
     private int _row = 0;
     private String _error;
     private String _status = "Running";
+    private int _interval = 200;
     //-----------------------------
     
     //------------Draw------------
@@ -55,7 +59,6 @@ public class CPU {
     
     public CPU(FXMLDocumentController controller){
         this._controller = controller;
-        
         _group_detect = new ArrayList<GroupDetect>();
         for(int i = 0; i < this._detectedLog.length; i++){
             for(int j = 0; j < this._detectedLog[i].length; j++){
@@ -69,23 +72,22 @@ public class CPU {
         _drawDetect = new DrawDetectedGraph(controller.canvasDetect, 16);
         _draw_square = new DrawSquare(controller.canvasSquare, 16);
         
-        String port = "COM8";
-        this._serial = new Serial2(port);  
-        this.start();
-        
-        
+        this._serial = new Serial2("COM8");  
+
+        this.run(); 
     }
     
-    public void start(){
+    public void run(){
         //-----------------Serial Read Thread-----------------
-        if(!_serial.connect())
-            this._status = "Serail Connection Fail";
-        
+//        this._status = "Running";
+//        if(!_serial.connect())
+//            this._status = "Serail Connection Fail";
+        _serial.connect();
         Thread serialThread = new Thread(new Runnable(){
             public void run(){
                 while(true){
+                    _status = _serial.getError();
                     _serial.run();
-                    _distance = _serial.getDistance();
                 }
             }
         });
@@ -113,17 +115,18 @@ public class CPU {
             @Override
             public void handle(long now2){  
                 try{
+                    showDistance(_lines);
                     //draw square line and lane
                     _draw_square.clearCanvas();
                     _draw_square.drawLine(_lines); 
                     _draw_square.drawLane(_lines, _lane);
                     
                     //draw detected graph
-                    _drawDetect.draw(_detectedLog);
+                    _drawDetect.draw(_detectedLog, _lines.line);
 
                     //----draw line----
                     _draw.clearCanvas();
-                    _draw.draw();      //<< draw default line (a green one)
+                    _draw.drawDefaultLine(_lines.line);      //<< draw default line (a green one)
                     _draw.drawMinMaxLine(_lines.line, Color.valueOf("#3498DB"), 4);  //<< (blue line)
                     _draw.drawDistancePoint(_lines.line, Color.valueOf("#E74C3C"));    //<<draw red dot
                     
@@ -144,27 +147,27 @@ public class CPU {
     //-------------------------------Compute-------------------------------
     public AutoLaneGenerate gd = new AutoLaneGenerate();
     private void startCompute(){
+        if(this._status == "")
+            this._status = "Running";
         this._controller.status.setText(this._status);
         try{
+            //if pause >> return 
             if(this._pause)
                 return;
             
             for(int i = 0; i < 16; i++){
-                this._lines.line[i].distance = this._distance[i];
-                this.showDistance(this._lines);
+                this._lines.line[i].distance = this._distance[i]; 
                 
-                //find max_distance in each line
+            //-------------find max_distance in each line---------------
                 if(this._row == 0)
                     this._lines.line[i].max_distance = this._lines.line[i].distance;
                 else{
                     if(this._lines.line[i].max_distance < this._lines.line[i].distance)
                         this._lines.line[i].max_distance = this._lines.line[i].distance;
                 }
-                //-------------------------------
+            //----------------------------------------------------------
                 
-                
-                
-                //------------------check for detection--------------------
+            //------------------check for detection--------------------
                 //Case1: if first detected (change from 0 -> 1)
                 if(this._lines.line[i].detect() && !this._lines.line[i].detected){
                     this._lines.line[i].detected = true;
@@ -188,7 +191,7 @@ public class CPU {
                         this._group_detect.get(this._group_detect.size() - 1).addLine(i);
                     }    
 
-    //                                    
+                                     
                 //Case2: if this line change from detected to not detected (1 -> 0)
                 }else if(!this._lines.line[i].detect() && this._lines.line[i].detected){
                     this._lines.line[i].detected = false;
@@ -209,18 +212,72 @@ public class CPU {
                         }
                     }
                 }
-            }  
             //-----------------------------------------------------------
-            
-            //draw square line and lane
-//            _draw_square.clearCanvas();
-//            _draw_square.drawLine(this._lines); 
-//            _draw_square.drawLane(this._lines, this._lane);
-            
+            }  
             addDetectLog();
 
             //------------------------car count process------------------------
-
+//            for (GroupDetect this_group : this._group_detect ) {
+//                
+//                //in case that this car_found line member does not already end at all(change from detect to non detect every line member) but the last  
+//                if(this_group.status == 1 && this_group.end_row != -1){
+//                    if(this._row - this_group.end_row > 3) {
+//                        this_group.status = 0;
+//                    }
+//                }
+//                if(this_group.status == 0){
+//                                            
+////                      |..II..II....|    <-- in this case some line are still not have thier end_row yet      
+////                      |..II..II....|        so, I have to create new group_detect for the line that already have an end_row 
+////                      |IIIIIIIIIIII|            and delete that line from the old group
+////                      |IIIIIIIIIIII| 
+////                      |............|
+//                    if(this_group.line_num_check != this_group.get_line_num()){   
+//                        this_group.sortLine();
+//                        Integer[] line = this_group.getLine();
+////                        int pre = 0;
+//                        int start = this_group.getLine()[0];
+//
+//                        for(int j = 0; j < line.length; j++){
+//                            if((j < line.length - 1 && this._lines.line[line[j + 1]].lastDetectRow == -1 && this._lines.line[line[j]].lastDetectRow != -1) 
+//                                || (this._lines.line[line[j]].lastDetectRow != -1 && j == line.length - 1) 
+//                                || (j < line.length - 1 && line[j + 1] - line[j] > 1)){
+//                                this._group_detect.add(new GroupDetect(this_group.first_row, this_group.end_row, 0));
+//                                for(int k = start; k <= j;k++){
+//                                    this._group_detect.get(this._group_detect.size() - 1).addLine(line[k]);
+//                                    this._group_detect.get(this._group_detect.size() - 1).line_num_check++;
+//                                }
+//                                for(int k = start; k <= j;k++){
+//                                    this_group.removeLine(line[k]);
+//                                    this_group.line_num_check--;
+//                                }
+//                                start = j + 1;
+//                            }else if(j < line.length - 1 && this._lines.line[line[j + 1]].lastDetectRow != -1 && this._lines.line[line[j]].lastDetectRow == -1){
+//                                start = j + 1;
+//                            }
+//                        }
+//                        
+//                            
+//                        this_group.line_num_check = 0;
+//                        this_group.end_row = -1;
+//                        this_group.status = 1;
+//    //                    System.out.println("length = " + this._group_detect.get(i).getLine().length);
+//    //                    System.out.println("line_num_check = " + this._group_detect.get(i).line_num_check + "\nline_num = " + this._group_detect.get(i).line_num);
+//
+//                    }
+//                    //in case  -> ........
+//                    //            .||.|.|.
+//                    //            .||||||.
+//                    //            .||||||.
+//                    else{
+//                        // do nothing
+//                    }
+//                }
+//                if(this_group.get_line_num() == 0)
+//                    this._group_detect.remove(this_group);
+//                
+//            }
+            //------------------------car count process------------------------
             for(int i = 0; i < this._group_detect.size(); i++ ){
                 //in case that this car_found line member does not already end at all(change from detect to non detect every line member) but the last  
                 if(this._group_detect.get(i).status == 1 && this._group_detect.get(i).end_row != -1){
@@ -229,13 +286,12 @@ public class CPU {
                     }
                 }
 
-                if(this._group_detect.get(i).status == 0){
-                                            
-//                      |..II..II....|    <-- in this case some line are still not have thier end_row yet      
-//                      |..II..II....|        so, I have to create new group_detect for the line that already have an end_row 
-//                      |IIIIIIIIIIII|            and delete that line from the old group
-//                      |IIIIIIIIIIII| 
-//                      |............|
+                if(this._group_detect.get(i).status == 0){             
+//                  |..II..II....|    <-- in this case some line are still not have thier end_row yet      
+//                  |..II..II....|        so, I have to create new group_detect for the line that already have an end_row 
+//                  |IIIIIIIIIIII|        and delete that line from the old group
+//                  |IIIIIIIIIIII| 
+//                  |............|
                     if(this._group_detect.get(i).line_num_check != this._group_detect.get(i).get_line_num()){   
                         this._group_detect.get(i).sortLine();
                         Integer[] line = this._group_detect.get(i).getLine();
@@ -244,7 +300,7 @@ public class CPU {
 
                         for(int j = 0; j < line.length; j++){
                             if((j < line.length - 1 && this._lines.line[line[j + 1]].lastDetectRow == -1 && this._lines.line[line[j]].lastDetectRow != -1) 
-                                || (this._lines.line[line[j]].lastDetectRow == -1 && j == line.length - 1) 
+                                || (this._lines.line[line[j]].lastDetectRow != -1 && j == line.length - 1) 
                                 || (j < line.length - 1 && line[j + 1] - line[j] > 1)){
                                 this._group_detect.add(new GroupDetect(this._group_detect.get(i).first_row, this._group_detect.get(i).end_row, 0));
                                 for(int k = start; k <= j;k++){
@@ -256,73 +312,67 @@ public class CPU {
                                     this._group_detect.get(i).line_num_check--;
                                 }
                                 start = j + 1;
-                            }else if(this._lines.line[line[j + 1]].lastDetectRow != -1 && this._lines.line[line[j]].lastDetectRow == -1){
+                            }else if(j < line.length - 1 && this._lines.line[line[j + 1]].lastDetectRow != -1 && this._lines.line[line[j]].lastDetectRow == -1){
                                 start = j + 1;
                             }
                         }
+                         
                         this._group_detect.get(i).line_num_check = 0;
                         this._group_detect.get(i).end_row = -1;
                         this._group_detect.get(i).status = 1;
-    //                    System.out.println("length = " + this._group_detect.get(i).getLine().length);
-    //                    System.out.println("line_num_check = " + this._group_detect.get(i).line_num_check + "\nline_num = " + this._group_detect.get(i).line_num);
 
                     }
-                    //in case  -> ........
-                    //            .||.|.|.
-                    //            .||||||.
-                    //            .||||||.
+//                  |............|    <-- in case(all lines already end)
+//                  |..I.I.III...|         
+//                  |..IIIIIII...|        
+//                  |..IIIIIII...| 
+//                  |............|
                     else{
                         // do nothing
                     }
                 }
+                if(this._group_detect.get(i).get_line_num() == 0){
+                    this._group_detect.remove(i);
+                    i--;
+                }
             }
             for(int i = 0; i < this._group_detect.size(); i++ ){
                 if(this._group_detect.get(i).status == 0){
-                    gd.autoGenLane2(this._group_detect.get(i));
+//                    gd.autoGenLane2(this._group_detect.get(i));
+//                    gd.collectLaneExample(this._group_detect.get(i).get_most_left_line(), this._group_detect.get(i).get_most_right_line());
                     this._car_num += this._group_detect.get(i).carSeperate(this._lines, this._lane);
                     
                    
                     this._group_detect.remove(i);
                 }
             }
-            System.out.println("----Auto Generate Lane----");
-            ArrayList<Lane> lane = gd.getLane();
-            for (int i = 0; i < lane.size(); i++) {
-                System.out.println("Lane" + lane.get(i).getId() + ": Left = " + lane.get(i).get_most_left_line() + "    Right = " + lane.get(i).get_most_right_line()); 
-            }
+
+            //----------------------------Auto Gen-----------------------------
+//            System.out.println("----Auto Generate Lane----");
+//            List<int[]> lane = gd.getLane();
+//            for (int i = 0; i < lane.size(); i++) {
+//                System.out.println("Lane" + i + ": Left = " + lane.get(i)[0] + "    Right = " + lane.get(i)[1] + "    Count = " + lane.get(i)[2]); 
+//            }
             
             //-----------------------------------------------------------------
             
-            
-                        
-            
-            System.out.println("Car count = " + this._car_num);
+            //---print---
+//            System.out.println("GroupDetect Num = " + this._group_detect.size());   
+//            System.out.println("Car count = " + this._car_num);
             this._total_car = 0;
             for(int i = 0; i < this._lane.length; i++){
-                System.out.print("Lane" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
+//                System.out.print("Lane" + i + ": car count = " + this._lane[i].getCarcount() + "     ");
                 this._total_car += this._lane[i].getCarcount();
-//                this._controller.lane[i].setText(this._lane[i].getCarcount() + "");
             }
-//            this._controller.total.setText(this._total_car + "");
-            System.out.println();
+//            System.out.println();
 
 
             //write excel file
     //        this.writeXLSFile(this._distance, this._row);
 
             this._row++;
-
-//            //draw detected graph
-//            this._drawDetect.draw(this._detectedLog);
-//
-//            //----draw line----
-//            this._draw.clearCanvas();
-//            this._draw.draw();      //<< draw default line (a green one)
-//
-//            this._draw.drawMinMaxLine(this._lines.line, Color.valueOf("#3498DB"), 4);  //<< (blue line)
-//            this._draw.drawDistancePoint(this._lines.line, Color.valueOf("#E74C3C"));    //<<draw red dot
                        
-            Thread.sleep(200);
+            Thread.sleep(this._interval);
             
         }catch(Exception ex){
             ex.printStackTrace();
@@ -366,6 +416,29 @@ public class CPU {
             for(int i = 0; i < lines.length(); i++){
                 text += "  " + lines.line[i].getId() + "\t";
             }
+            
+            text += "\nMax:\t\t";
+            for(int i = 0; i < lines.line.length; i++){
+                if(lines.line[i].getMax() / 100 == 0){
+                    text += " ";
+                    if(lines.line[i].getMax() / 10 == 0){
+                        text += " ";
+                    }
+                }
+                text += lines.line[i].getMax() + "\t";
+            }
+            
+            text += "\nMin:\t\t";
+            for(int i = 0; i < lines.line.length; i++){
+                if(lines.line[i].getMin() / 100 == 0){
+                    text += " ";
+                    if(lines.line[i].getMin() / 10 == 0){
+                        text += " ";
+                    }
+                }
+                text += lines.line[i].getMin() + "\t";
+            }
+            
             text += "\nDistance:\t";
             for(int i = 0; i < lines.line.length; i++){
                 if(lines.line[i].distance / 100 == 0){
@@ -376,6 +449,7 @@ public class CPU {
                 }
                 text += lines.line[i].distance + "\t";
             }
+            
             this._controller.distanceTextArea.setFont(new Font(13));
             this._controller.distanceTextArea.setText(text);
         }catch(Exception ex){
@@ -420,7 +494,7 @@ public class CPU {
                 return false;
             }
             int length = lines.getArray().countObjects();
-            System.out.println("length = " + length);
+//            System.out.println("length = " + length);
             for (int i = 0; i < length; i++){
                 alisa.json.Object obj = lines.getArray().getObject(i);
                 String id = getStringJson(obj, "id");
@@ -428,7 +502,7 @@ public class CPU {
                 int max = getIntegerJson(obj, "max");
 //                this._lines.line[i] = new Line(id, min, max);
                 this._lines.line[this._lines.findById(id)].setMinMax(min, max);
-                System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
+//                System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
             }           
         }
         catch (Exception ex) {
@@ -436,7 +510,7 @@ public class CPU {
             ex.printStackTrace();
             return false;
         }
-        this._status = "Running";
+//        this._status = "Running";
         return true;
     }
     
@@ -484,7 +558,7 @@ public class CPU {
                 }
             }
             for(int i = 0; i < this._lines.length(); i++){
-                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
+//                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
                 this._controller.max[i].setText(this._lines.line[i].getMax() + "");
                 this._controller.min[i].setText(this._lines.line[i].getMin() + "");
             }
@@ -494,7 +568,7 @@ public class CPU {
             ex.printStackTrace();
             return false;
         }
-        this._status = "Running";
+//        this._status = "Running";
         return true;
     }
     //------------------------------------------------------------------------

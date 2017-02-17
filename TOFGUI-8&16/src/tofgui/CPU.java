@@ -20,9 +20,9 @@ public class CPU
     private int board_type = 3;
     public int line_num;  //<< only 8 or 16
     private String version = "";
-    public int interval = 500;
+    public int interval = 300;
     private boolean _serial_connect;
-    
+    private boolean _serial_idle = true;
     public boolean isSerialConnected(){
         return this._serial_connect;
     }
@@ -171,7 +171,7 @@ public class CPU
         try{
             //wait if serial is busy
             while(_serial_status != 0){
-                System.out.print("");
+                System.out.print("serial busy");
             }
             //set serial status    
             _serial_status = 1;
@@ -257,7 +257,7 @@ public class CPU
         try{
             //wait if serial is busy
             while(_serial_status != 0){
-                System.out.print("");
+                System.out.print("serial busy");
             }
             //set serial status    
             _serial_status = 1;
@@ -340,7 +340,7 @@ public class CPU
         try{
             //wait if serial is busy
             while(_serial_status != 0){
-                System.out.print("");
+                System.out.print("serial busy");
             }
             
             byte []data = new byte[4]; 
@@ -452,7 +452,7 @@ public class CPU
         try{
             //wait if serial is busy
             while(_serial_status != 0){
-               System.out.print("");
+               System.out.print("serial busy");
             }       
             //set status
             _serial_status = 3;
