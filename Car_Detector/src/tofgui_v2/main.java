@@ -41,7 +41,7 @@ import tofgui_v2.Model.MJPEG;
  *
  * @author admin
  */
-public class TOFGUI_v2 extends Application {
+public class main extends Application {
 
     private static String _excelFileName = "";
     private static HSSFSheet _sheet;
@@ -142,9 +142,9 @@ public class TOFGUI_v2 extends Application {
         //loadConfig
         this._controller.loadConfigButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-//                _cpu.readInputConfig();   
-//                _cpu.readOutputConfig();
-                _cpu.readConfig();
+                _cpu.readInputConfig();   
+                _cpu.readOutputConfig();
+//                _cpu.readConfig();
             }
         });
         

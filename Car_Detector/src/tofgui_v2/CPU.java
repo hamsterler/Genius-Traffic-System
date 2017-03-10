@@ -42,7 +42,7 @@ public class CPU {
     //----------------------------
     
 
-    private Serial2 _serial;
+    private Serial _serial;
     private FXMLDocumentController _controller;
     
     private boolean _pause = false;
@@ -72,7 +72,7 @@ public class CPU {
         _drawDetect = new DrawDetectedGraph(controller.canvasDetect, 16);
         _draw_square = new DrawSquare(controller.canvasSquare, 16);
         
-        this._serial = new Serial2("COM8");  
+        this._serial = new Serial("COM8");  
 
         this.run(); 
     }
@@ -95,9 +95,9 @@ public class CPU {
         //----------------------------------------------------
       
         //----Read Config----
-        readInputConfig();
-        readOutputConfig();
-//        readConfig();   
+//        readInputConfig();
+//        readOutputConfig();
+        readConfig();   
         //---------------Create Thread for calculating a distance value--------------
         Thread computeThread = new Thread(new Runnable(){
             public void run(){
@@ -481,77 +481,8 @@ public class CPU {
     
     //-------------------------------Read Config-------------------------------
     public boolean readConfig(){
-        try{
-            alisa.json.Parser parser = new alisa.json.Parser();
-            alisa.json.Object root = parser.load("config.json");
-            if (root == null) { 
-                this._status = "Error on reading config.json"; 
-                return false; 
-            }
-            //input
-            alisa.json.Data lines = root.findData("input");
-            if (lines == null || !lines.isArray()){
-                this._status = "Wrong input_config.json."; 
-                return false;
-            }
-            int length = lines.getArray().countObjects();
-//            System.out.println("length = " + length);
-            for (int i = 0; i < length; i++){
-                alisa.json.Object obj = lines.getArray().getObject(i);
-                String id = getStringJson(obj, "id");
-                int min = getIntegerJson(obj, "min");
-                int max = getIntegerJson(obj, "max");
-                this._lines.line[i] = new Line(id.charAt(0));
-                this._lines.line[i].setMinMax(min, max);
-//                System.out.println("line " + i + ":     id = " + this._lines.line[i].getId() + "     min = " + this._lines.line[i].getMin() + "     max = " + this._lines.line[i].getMax());
-            }        
-            //lines
-            lines = root.findData("output");
-            if (lines == null || !lines.isArray()){
-                this._status = "Wrong output_config.json"; 
-                return false;
-            }
-            length = lines.getArray().countObjects();
-            this._lane = new Lane[length];
-            
-            for (int i = 0; i < length ; i++){
-                alisa.json.Object obj = lines.getArray().getObject(i);
-                int id = getIntegerJson(obj, "id");
-                this._lane[i] = new Lane(id);
-                String input = getStringJson(obj, "input"); 
-                char[] in = new char[input.length()];
-                input.getChars(0, input.length(), in, 0);         
-                int[] in2 = new int[in.length];
-                for(int j = 0; j < in.length; j++){
-                    this._lines.line[this._lines.findById("" + in[j])].setLane(this._lane[i].getId());
-                    in2[j] = this._lines.findById("" + in[j]);
-                }
-                this._lane[i].setLine(in2);
-//                System.out.println("lane " + i + ":     id = " + id + "     input = " + input + "input[0] = " + in[in.length-1] );
-            }    
-            
-            for(int i = 0; i < 6; i++){
-                if(i < this._lane.length){
-                    this._controller.text[i].setVisible(true);
-                    this._controller.text[i].setText(this._lane[i].getId() + "");
-                    this._controller.lane[i].setVisible(true);
-                }else{
-                    this._controller.text[i].setVisible(false);
-                    this._controller.lane[i].setVisible(false);
-                }
-            }
-            for(int i = 0; i < this._lines.length(); i++){
-//                System.out.println("line" + i + ": id = " + this._lines.line[i].getId() + "  min = " + this._lines.line[i].getMin() + "  max = " + this._lines.line[i].getMax() + "     lane = " + this._lines.line[i].getLaneId() );
-                this._controller.max[i].setText(this._lines.line[i].getMax() + "");
-                this._controller.min[i].setText(this._lines.line[i].getMin() + "");
-            }
-        }
-        catch (Exception ex) {
-            this._status = "Read input_config.json Fail!!";
-            ex.printStackTrace();
-            return false;
-        }
-//        this._status = "Running";
+        readInputConfig();
+        readOutputConfig();
         return true;
     }
     

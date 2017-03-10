@@ -26,7 +26,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
-public class Serial2 /*extends Thread*/
+public class Serial /*extends Thread*/
 {
     private String _error = "";
     public boolean exit = false;
@@ -42,7 +42,7 @@ public class Serial2 /*extends Thread*/
 
     private int _interval = 200;
     
-    public Serial2(String port_name)
+    public Serial(String port_name)
     {  
         this._port_name = port_name;
     }
