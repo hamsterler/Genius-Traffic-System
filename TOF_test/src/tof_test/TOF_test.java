@@ -28,7 +28,10 @@ public class TOF_test {
             public void run(){
                 while(true){
 //                    status = _serial.getError();
+
                     serial.run();
+//                    serial.getDetection();
+                    
 //                    test._distance = serial.getDistance();
 //                    System.out.print("Distance:   ");
 //                    for (int i = 0; i < 8; i++) {
@@ -37,7 +40,7 @@ public class TOF_test {
 //                    System.out.println("");
                     
                     try {
-                        Thread.sleep(250);
+                        Thread.sleep(400);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(TOF_test.class.getName()).log(Level.SEVERE, null, ex);
                     }

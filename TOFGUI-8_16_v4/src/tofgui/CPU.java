@@ -23,7 +23,7 @@ public class CPU
     public int distance = 0;
     private int board_type = 3;
     public int line_num = 8; 
-    public int interval = 150;
+    public int interval = 500;
     private boolean _serial_connect;
     private boolean _serial_idle = true;
     public int[] buffer;
@@ -69,18 +69,6 @@ public class CPU
     //-------------Constructor--------------
     public CPU(){
         this.line_num = 8;
-        //test
-//        for (int i = 0; i < 8; i++) {
-//            this.auto_max[i] = 333;
-//            this.auto_min[i] = 200;
-//        }
-    }
-    
-    public CPU(String port)
-    {
-        this.line_num = 8;
-        this._port = port;
-        _serial_connect = this._reconnect();
     }
     //--------------------------------------
     
@@ -187,7 +175,7 @@ public class CPU
         return true;
     }
     
-    // -------------------------- 0.GetVersion -----------------------------  
+    // ---------------------------- 0.GetVersion ---------------------------- 
     public boolean getVersion(){
         //--------------Send--------------
         try{
@@ -576,7 +564,7 @@ public class CPU
         return true;
     } 
     
-    // ---------------------------- 3.GetSystemStatus -------------------------------
+    // ---------------------------- 4.GetSystemStatus -------------------------------
     public boolean getSystemStatus(){
         //--------------Send--------------
         try{
@@ -663,7 +651,6 @@ public class CPU
         _serial_status = 0;
         return true;
     }
-    //----------------------------------------------------------
     
     // ---------------------------- auto assign minmax -------------------------------
     public int[] auto_min = new int[8];
@@ -671,11 +658,13 @@ public class CPU
     int safe_zone_length = 30; // (cm.)
     public int[] reference_distance = new int[8]; 
     public boolean auto_assign_minmax(int[] distance){
-//        auto_min[0] = 300;
-//        auto_max[0] = 300;
-//        auto_min[1] = 100;
-//        auto_max[1] = 400;
-//        auto_min[6] = 100;
+//        auto_min[0] = 100;
+//        auto_max[0] = 400;
+//        auto_min[3] = 100;
+//        auto_max[3] = 300;
+//        auto_min[5] = 200;
+//        auto_max[5] = 400;
+//        auto_min[6] = 150;
 //        auto_max[6] = 400;
 //        auto_min[7] = 300;
 //        auto_max[7] = 300;
@@ -708,9 +697,10 @@ public class CPU
         System.out.println("");
         return true;
     }
+    
     public int[] auto_line_min = new int[8];
     public int[] auto_line_max = new int[8];
-    public void drawAutoLine(){
+    public void drawAutoLine2(){
 //        auto_line_min[0] = 100;
 //        auto_line_max[0] = 300;
 //        auto_line_min[1] = 100;
@@ -740,16 +730,10 @@ public class CPU
                 }else if(status == 1){
                     if(i - pre > 1){
                         int bas_min = 0;
-//                        if(auto_line_min[pre] > auto_line_min[i]) 
-//                            bas_min = auto_line_min[i];
-//                        else
-                            bas_min = auto_line_min[pre];
+                        bas_min = auto_line_min[pre];
                         
                         int bas_max = 0;
-//                        if(auto_line_max[pre] > auto_line_max[i]) 
-//                            bas_max = auto_line_max[i];
-//                        else
-                            bas_max = auto_line_max[pre];
+                        bas_max = auto_line_max[pre];
                         
                         int num = i - pre;
                         int gab_min = (int)((double)(auto_line_min[i] - auto_line_min[pre]) / (double)num);
@@ -758,8 +742,6 @@ public class CPU
                         for (int j = 1; j < num; j++) {
                             auto_line_min[pre + j] = bas_min + gab_min * j;
                             auto_line_max[pre + j] = bas_max + gab_max * j;
-//                            auto_line_min[pre + j] = bas_min + gab_min;
-//                            auto_line_max[pre + j] = bas_max + gab_max;
                         }
                     }
                     pre = i;
@@ -774,6 +756,90 @@ public class CPU
         System.out.print("\nAutoDraw Max: " );
         for (int i = 0; i < 8; i++) {
             System.out.print( auto_line_max[i] + "    ");
+        }
+        System.out.println("");
+    }
+    
+    public void drawDetectedArea(){
+        auto_line_min = new int[8];
+        auto_line_max = new int[8];
+        String pre_type = "";
+        int pre = -1;
+        int status = 0;
+        int left_edge = -1;
+        int right_edge = -1;
+        for (int i = 0; i < 8; i++) {
+            if(auto_min[i] == 0 && auto_max[i] == 0){
+                //do nothing
+            }else{
+                auto_line_min[i] = auto_min[i];
+                auto_line_max[i] = auto_max[i];
+                if(pre == -1){
+                    left_edge = i;
+                    right_edge = i;
+                }else if(auto_min[i] != auto_max[i]){
+                    int num_min = i - left_edge;
+                    int num_max = i - right_edge;
+                    int gab_min = (int)((double)(auto_min[i] - auto_min[left_edge]) / (double)num_min);
+                    int gab_max = (int)((double)(auto_max[i] - auto_max[right_edge]) / (double)num_max);
+
+                    for (int j = 1; j < num_min; j++) {
+                        auto_line_min[left_edge + j] = auto_min[left_edge] + gab_min * j;
+                    }
+                    for (int j = 1; j < num_max; j++) {
+                        auto_line_max[right_edge + j] = auto_max[right_edge] + gab_max * j;
+                    }
+                    left_edge = i;
+                    right_edge = i;
+                }else{ //min == max
+                    int num_min = i - left_edge;
+                    int num_max = i - right_edge;
+                    int gab_min = (int)((double)(auto_min[i] - auto_min[left_edge]) / (double)num_min);
+                    int gab_max = (int)((double)(auto_max[i] - auto_max[right_edge]) / (double)num_max);
+
+                    for (int j = 1; j < num_min; j++) {
+                        auto_line_min[left_edge + j] = auto_min[left_edge] + gab_min * j;
+                    }
+                    for (int j = 1; j < num_max; j++) {
+                        auto_line_max[right_edge + j] = auto_max[right_edge] + gab_max * j;
+                    }
+                   
+                    if(auto_min[left_edge] == auto_max[right_edge]){
+                        if(auto_max[i] < auto_min[left_edge])
+                            left_edge = i;
+                        else
+                            right_edge = i;
+                    }else{
+                        if(Math.abs(auto_max[i] - auto_min[left_edge]) <  Math.abs(auto_max[i] - auto_min[right_edge])){
+                            left_edge = i;
+                        }else{
+                            right_edge = i;
+                        }
+                    }
+                }
+                pre = i;
+            }
+            if(left_edge >= 0)
+                System.out.println("Left Edge" + i + " = " + auto_min[left_edge]);
+            if(right_edge >= 0)
+                System.out.println("Right Edge" + i + " = " + auto_max[right_edge]);
+        }
+        
+        for (int i = 0; i < 8; i++) {
+            if(auto_line_min[i] !=  0)
+                auto_line_min[i] = auto_line_min[i] - 10;
+            
+            if(auto_line_max[i] !=  0)
+                auto_line_max[i] = auto_line_max[i] + 10;        
+        }
+        
+        System.out.print("AutoDraw Min: " );
+        for (int i = 0; i < 8; i++) {
+            System.out.print( auto_line_min[7 - i] + "    ");
+        }
+        System.out.print("\nAutoDraw Max: " );
+        for (int i = 0; i < 8; i++) {
+            System.out.print( auto_line_max[7 - i] + "    ");
         }
         System.out.println("");
     }

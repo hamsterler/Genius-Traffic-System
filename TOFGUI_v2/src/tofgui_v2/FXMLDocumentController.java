@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tofgui_v2;
 
 
@@ -21,10 +16,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 
-/**
- *
- * @author admin
- */
 public class FXMLDocumentController implements Initializable {
     
     @FXML public AnchorPane ap;

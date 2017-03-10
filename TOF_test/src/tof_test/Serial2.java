@@ -193,11 +193,9 @@ public class Serial2 /*extends Thread*/
 //                 write
                 {
                     byte []b = new byte[4];
-                    
                     b[0] = 1;       // slave id
-                    
                     b[1] = 0x41;    // function code
-
+                    
                     int crc16 = alisa.CRC.crc16(b, 0, 2);
                     b[2] = (byte)(crc16 >> 8); // high
                     b[3] = (byte)(crc16 & 0xFF); // low
@@ -206,7 +204,7 @@ public class Serial2 /*extends Thread*/
                 }
                 
                 // wait for response
-                Thread.sleep(200);
+                Thread.sleep(100);
                 System.out.println("...");
                 // read                
                 if (this._in.available() > 0)
@@ -221,12 +219,12 @@ public class Serial2 /*extends Thread*/
                     }
                     System.out.println("Length = " + length);
                     
-                    System.out.print("Message:    ");
-                    for (int i = 0; i < length; i++) {
-                        System.out.print((buffer[i] & 0xff) + "    ");
-                    }
+//                    System.out.print("Message:    ");
+//                    for (int i = 0; i < length; i++) {
+//                        System.out.print((buffer[i] & 0xff) + "    ");
+//                    }
                     System.out.println("");
-                    if (length >= 60)
+                    if (length == 60)
                     {
                         // Leddar VU
                         int index = 0;
@@ -269,29 +267,44 @@ public class Serial2 /*extends Thread*/
 //                            }                            
 //                        }
                     }
-                    else if (length == 91)
+                    else if(length >= 91)
                     {
-                        // Leddar M16
-                        if (buffer[0] == 1 && buffer[1] == 0x41 && buffer[2] == 16) // slave_id & function code & detectors
+//                        System.out.println("91");
+                        int index = 0;
+                        for(int i = 0; i < length;i++){
+                            if(buffer[i] == 1 && buffer[i + 1] == 0x41 && buffer[i + 2] == 16){
+                                index = i;
+                                break;
+                            }
+                        }
+                        
+                        if (buffer[index] == 1 && buffer[index + 1] == 0x41 && buffer[index + 2] == 16) // slave_id & function code & detectors
                         {
-                            if (alisa.CRC.crc16(buffer, 0, 91) == 0) // check CRC16
+                            if (alisa.CRC.crc16(buffer, index + 0, index + 91) == 0) // check CRC16
                             {
+                                System.out.println("length = " + length);
                                 s += "M16 : distance = ";
                                 int offset = 3;
                                 for (int i=0; i<16; i++)
                                 {
-                                    int d = (buffer[offset] & 0xFF) + ((buffer[offset+1] & 0xFF) << 8); // [LO][HI]
+                                    int d = (buffer[index + offset] & 0xFF) + ((buffer[index + offset+1] & 0xFF) << 8); // [LO][HI]
                                     this._distance[i] = d;
                                     s += d + ",";
                                     offset += 5;
                                 }                                
                                 System.out.println(s);
-                            }     
+                            } else{
+                                System.out.println("Wrong CRC");
+                            }    
+                        }     
+                        else{
+                            System.out.println("Fail Length = " + length);
                         }                        
                     }
                     else{
                         System.out.println("No message");
                     }
+                    Thread.sleep(400);
                 }                
             //------------------------------------------------------------------    
             } 
@@ -310,7 +323,115 @@ public class Serial2 /*extends Thread*/
                 
             }
     } 
+    public synchronized boolean getDetection(){              
+        //--------------Send--------------
+        try{
+            
+            byte[] data = new byte[3];
+            data[0] = (byte)0xff;
+            data[1] = (byte)3;
+            int crc8 = alisa.CRC.crc8(data, 0, 2);
+            data[2] = (byte)(crc8); 
 
+            this._out.write(data);
+            System.out.println("Sent GetDetection");       
+        } 
+        catch (Exception ex){
+            this._error = "getDistance | Write | Exception Error | " + ex.getMessage();
+            return false;
+        }
+        
+        //---------------Sleep----------------
+        try{  Thread.sleep(300);  }
+        catch (InterruptedException  ex ){  return false; }
+        //------------------------------------
+        
+        //--------------Receive---------------    
+        int[] result = new int[8 + 1];
+        try{
+            byte[] buffer = new byte[1024];
+            
+            int length = this._in.read(buffer);
+                     
+            System.out.println(length);
+           
+            if (length >= 37 && buffer[0] == (byte)0xff  && buffer[1] == 3 ){ // slave_id & function code  
+                if (alisa.CRC.crc8(buffer, 0, 37) == 0){ // check CRC8
+                    
+                    System.out.println("Received!!!!");
+                    try{
+                        //connected
+                        int connected = (int)(buffer[34] & 0xff);
+//                        if(connected == 1)
+//                            this._leddar_connected = true;
+//                        else 
+//                            this._leddar_connected = false;
+                        
+                        //detected
+                        int detected = (int)(buffer[35] & 0xff);
+//                        if(detected == 1)
+//                            this._detected = true;
+//                        else
+//                            this._detected = false;
+                        
+                        //distance 
+                        System.out.print("Distance: ");
+                        for (int i = 0; i < 8; i++){
+                            int a = 0;
+                            try{
+                                a = ((int)(buffer[2*i + 2] & 0xff) + (int)((buffer[2*i + 3] & 0xff) << 8));
+                                this._distance[i] = a;
+                                //find new max_distance
+//                                if(this._distance[i] > this.max_distance[i])
+//                                    this.max_distance[i] = this._distance[i];
+                                
+                                //check for each line detection
+//                                if(this._distance[i] >= this._min[i] && this._distance[i] <= this._max[i] && this._detected)
+//                                    this._line_detected[i] = true;
+//                                else if(!this._detected)
+//                                    this._line_detected[i] = false;
+//                                else
+//                                    this._line_detected[i] = false;
+                                  
+                            }catch(Exception e){
+//                                e.printStackTrace();
+                                this._distance[i] = 0;
+                            }
+                            System.out.print( a + " " );
+                        }    
+                        
+                        System.out.println();
+                    }catch(Exception e){
+                        System.out.println("Error: " + e.getMessage());
+//                        _serial_status = 0;
+                   }
+                } 
+                else{
+                    this._error = "getDistance | Read | CRC Error";
+//                    this._connected = false;
+//                    _serial_status = 0;
+                    return false;
+                }
+//                this._connected = true;
+            } 
+            else{
+                this._error = "getDistance | Read | Data Error";
+//                this._connected = false;
+//                _serial_status = 0;
+                return false;
+            }   
+        }
+        catch (Exception ex){
+            this._error = "getDistance | Read | Exception Error | " + ex.getMessage();
+//            this.distance = -3; 
+//            this._connected = false;
+//            this._reconnect();
+//            _serial_status = 0;
+            return false;
+        }
+//        _serial_status = 0;
+        return true;
+    }
     public String getError(){
         return this._error;
     }

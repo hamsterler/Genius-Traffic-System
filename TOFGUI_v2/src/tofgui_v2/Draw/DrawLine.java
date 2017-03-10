@@ -102,8 +102,8 @@ public class DrawLine {
                 double x = this.max_line_length * Math.cos(angle);
                 
                 //text
-                double text_y = (this.max_line_length + 5) * Math.sin(angle);
-                double text_x = (this.max_line_length + 5) * Math.cos(angle);
+                double text_y = (this.max_line_length + 15) * Math.sin(angle);
+                double text_x = (this.max_line_length + 15) * Math.cos(angle);
                 _gc.setTextAlign(TextAlignment.CENTER);
                 _gc.setFont(new Font(10));
                 _gc.fillText(line[i].getId() + "",  setX(text_x), setY(text_y));
@@ -127,7 +127,7 @@ public class DrawLine {
         return (-x) + ((double)this.width/(double)2);
     }
     public double setY(double y){
-        return (double)this.high - y;
+        return (double)y + 10;
     }
     
     public Canvas getCanvas(){

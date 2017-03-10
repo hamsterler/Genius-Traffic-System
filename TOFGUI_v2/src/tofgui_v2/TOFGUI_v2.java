@@ -11,8 +11,6 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,8 +142,9 @@ public class TOFGUI_v2 extends Application {
         //loadConfig
         this._controller.loadConfigButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                _cpu.readInputConfig();   
-                _cpu.readOutputConfig();
+//                _cpu.readInputConfig();   
+//                _cpu.readOutputConfig();
+                _cpu.readConfig();
             }
         });
         
@@ -240,6 +239,7 @@ public class TOFGUI_v2 extends Application {
     {
         int delay = 50; // 20 fps
         int ms = (int)(count/(1000000*delay));
+//        int ms = 10000;
         if (ms == this._last_ms) return;
         
         this._last_ms = ms;

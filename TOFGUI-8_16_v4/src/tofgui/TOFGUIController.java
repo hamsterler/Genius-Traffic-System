@@ -22,8 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
+import javafx.scene.text.*;
 
 public class TOFGUIController implements Initializable {
     
@@ -79,6 +78,7 @@ public class TOFGUIController implements Initializable {
     @FXML private Button startButton;
     @FXML private Button updateButton;
     @FXML private Button detectedButton;
+    @FXML private Button setRefDistanceButton;
     
     @FXML private TextField start_delay;
     @FXML private TextField end_delay;
@@ -91,7 +91,6 @@ public class TOFGUIController implements Initializable {
     @FXML private CheckBox showAutoMinMax;
     @FXML private CheckBox showAutoLine;
     
-    @FXML private Button setRefDistanceButton;
     @FXML private CheckBox autoAssignCheckBox;    
     @FXML Pane controlPane;
     public String log = "";
@@ -142,46 +141,6 @@ public class TOFGUIController implements Initializable {
             ex.printStackTrace();
         }
     }  
-    //------------------------Set Ref. Length Button------------------------
-    private void handleSetRefDistanceButton(ActionEvent event){
-        try{
-            cpu.setRefDistance();
-            cpu.resetAutoMinMax();
-            int[] max = new int[8];
-            for (int i = 0; i < 8; i++) {
-                max[i] = cpu.reference_distance[i] - 20;
-            }
-            for (int i = 0; i < 5; i++) {
-                if(cpu.setConfig(cpu.getMin(), max, cpu.getInSense(), cpu.getOutSense())){
-                    addLog("SetConfig Success!!\n");
-                    break;
-                }
-            }
-//            cpu.setConfig(cpu.getMin(), max, cpu.getInSense(), cpu.getOutSense());
-            cpu.getConfig();
-            showConfig();
-            addLog("RefDistance: ");
-            for (int i = 0; i < 8; i++) {
-                addLog(cpu.reference_distance[7 - i] + "    ");
-            }
-            addLog("\r\n");
-        }catch(Exception ex){
-            ex.printStackTrace();
-            addErrorLog("Error | setRefDistanceButton: " + ex.getMessage());
-        }   
-    }
-    //----------------------------Detect Button----------------------------
-    private void handleDetectedButton(ActionEvent event){
-        try{
-            addLog("Detect!!\n");
-            cpu.auto_assign_minmax(cpu.getDistance());
-            cpu.drawAutoLine();
-            showConfig();
-        }catch(Exception ex){
-            ex.printStackTrace();
-            addErrorLog("Error | detectedButton: " + ex.getMessage());
-        }   
-    }
     
     //----------------------------Start Button----------------------------
     private void handleStartButton(ActionEvent event){
@@ -269,7 +228,6 @@ public class TOFGUIController implements Initializable {
                 }
             });
             t.start();
-            
             //----start update thread----
             AnimationTimer update_thread = new AnimationTimer() 
             {
@@ -385,11 +343,15 @@ public class TOFGUIController implements Initializable {
             if(!this.cpu.setConfig(min, max, in_sensitivity, out_sensitivity)){
 //                addErrorLog("Updating Fail!!\n");
 //                addErrorLog("Please Wait.\n");
-                while(!cpu.getConfig()){
-                    System.out.print("");
+                for (int i = 0; i < 5; i++) {
+                    if(cpu.getConfig()){
+                        showConfig();   
+                        addLog("Updating Success!!\n");
+                        return;
+                    }
                 }
                 showConfig();   
-                addLog("Updating Success!!\n");
+                addErrorLog("Updating Fail!!\n");
 //                return;
             }else{
                 cpu.getConfig();
@@ -408,17 +370,59 @@ public class TOFGUIController implements Initializable {
             return;
         }
     }
-   
-    public void addErrorLog(String message){  
-        Text t = new Text(message);
-        t.setFill(Color.valueOf("#E74C3C"));
-        textFlow.getChildren().add(t);
+    
+    //------------------------Set Ref. Length Button------------------------
+    private void handleSetRefDistanceButton(ActionEvent event){
+        try{
+            //if leddar is disconnected
+            if(!cpu.getLeddarConnect()){
+                addErrorLog("Leddar is Disconnected. Please Wait!!\n");
+                return;
+            }
+            cpu.setRefDistance();
+            cpu.resetAutoMinMax();
+            int[] max = new int[8];
+            for (int i = 0; i < 8; i++) {
+                max[i] = cpu.reference_distance[i] - 20;
+            }
+            for (int i = 0; i < 5; i++) {
+                if(cpu.setConfig(cpu.getMin(), max, cpu.getInSense(), cpu.getOutSense())){
+                    addLog("SetConfig Success!!\n");
+                    break;
+                }
+            }
+//            cpu.setConfig(cpu.getMin(), max, cpu.getInSense(), cpu.getOutSense());
+            cpu.getConfig();
+            showConfig();
+            addLog("RefDistance: ");
+            for (int i = 0; i < 8; i++) {
+                addLog(cpu.reference_distance[7 - i] + "    ");
+            }
+            addLog("\r\n");
+        }catch(Exception ex){
+            ex.printStackTrace();
+            addErrorLog("Error | setRefDistanceButton: " + ex.getMessage());
+        }   
     }
     
-    public void addLog(String message){
-        textFlow.getChildren().add(new Text(message));
+    //----------------------------Detect Button----------------------------
+    private void handleDetectedButton(ActionEvent event){
+        try{
+            if(!cpu.getLeddarConnect()){
+                addErrorLog("Leddar is Disconnected. Please Wait!!\n");
+                return;
+            }
+            addLog("Detect!!\n");
+            cpu.auto_assign_minmax(cpu.getDistance());
+            cpu.drawDetectedArea();
+            showConfig();
+        }catch(Exception ex){
+            ex.printStackTrace();
+            addErrorLog("Error | detectedButton: " + ex.getMessage());
+        }   
     }
-//    public int[] buffer;
+    
+
     public int[] max_distance;
     public int[] min_distance;
     public void update_animation() {
@@ -435,7 +439,7 @@ public class TOFGUIController implements Initializable {
             this._draw.draw_default(cpu.getLeddarConnect());      //<< draw default line (a green one)
             this._draw.drawMinMaxLine(this.cpu.getMin(), this.cpu.getMax(), cpu.getLineDetected(), cpu.getLeddarConnect());  //<< (blue line)    
             if(showAutoLine.isSelected())
-                this._draw.drawAutoLine(this.cpu.auto_line_min, this.cpu.auto_line_max);
+                this._draw.drawDetectedArea(this.cpu.auto_line_min, this.cpu.auto_line_max);
             
             if(cpu.getLeddarConnect()){
                 if(showAutoMinMax.isSelected())
@@ -521,5 +525,13 @@ public class TOFGUIController implements Initializable {
         }
     }    
     
+    public void addErrorLog(String message){  
+        Text t = new Text(message);
+        t.setFill(Color.valueOf("#E74C3C"));
+        textFlow.getChildren().add(t);
+    }
     
+    public void addLog(String message){
+        textFlow.getChildren().add(new Text(message));
+    }
 }

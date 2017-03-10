@@ -11,8 +11,6 @@ import javafx.scene.text.TextAlignment;
 
 
 public class Draw {
-//    public int high;
-//    public int width;
     public double max_line_length;
     public int line_num = 8;
     private final Canvas _canvas;
@@ -26,8 +24,6 @@ public class Draw {
     }
     
     public Draw(int width, int high, int max_line_length, int line_num){
-//        this.high = high;
-//        this.width = width;
         this.max_line_length = max_line_length;
         this.line_num = line_num;
         this._canvas =  new Canvas(width, high);
@@ -70,7 +66,8 @@ public class Draw {
     
     public boolean drawDistancePoint( int[] distance, Paint color){       
         try{
-            
+            if(max_max == 0)
+                return false;
             for(int i =0; i < this.line_num; i++){
                 double angle = (Math.PI/(double)4) + i * Math.PI/(double)(2*(this.line_num-1));
                 double scale = (double)max_line_length / (double)max_max;
@@ -103,8 +100,10 @@ public class Draw {
         return true;
     }
     
-        public boolean drawAutoMinMax(int[] min,int[] max){       
+    public boolean drawAutoMinMax(int[] min,int[] max){       
         try{
+            if(max_max == 0)
+                return false;
 //            this.max_line_length = (int)(((double)4/(double)5) * (double)this._gc.getCanvas().getHeight());
             for(int i = 0; i < this.line_num; i++){
                 if(min[i] == 0 && max[i] == 0)
@@ -155,6 +154,8 @@ public class Draw {
     }
     public boolean drawMinMaxLine(int[] min, int[] max, boolean[] line_detected, boolean isLeddarConnected){       
         try{
+            if(max_max == 0)
+                return false;
             int line_size = (int)(max_line_length / (double)26);
             Paint color = Color.valueOf("#3498DB");
             Paint detected_color = Color.valueOf("#E74C3C");
@@ -216,7 +217,9 @@ public class Draw {
         canvas.setHeight(height - 20);
     }
     
-    public void drawAutoLine(int[] min, int[] max){
+    public void drawDetectedArea(int[] min, int[] max){
+        if(max_max == 0)
+            return;
         boolean first = true;
         _gc.setStroke(Color.valueOf("#2ECC71"));  
         _gc.setLineWidth(2);

@@ -40,7 +40,7 @@ public class Serial2 /*extends Thread*/
     
     private int[] _distance = new int[16];
 
-    private int _interval = 100;
+    private int _interval = 200;
     
     public Serial2(String port_name)
     {  
@@ -196,13 +196,11 @@ public class Serial2 /*extends Thread*/
                 // write
                 {
                     byte []b = new byte[4];
-                    
                     b[0] = 1;       // slave id
-                    
                     b[1] = 0x41;    // function code
-
+                    
                     int crc16 = alisa.CRC.crc16(b, 0, 2);
-                    b[2] = (byte)(crc16 >> 8); // high
+                    b[2] = (byte)((crc16 >> 8) & 0xff); // high
                     b[3] = (byte)(crc16 & 0xFF); // low
 
                     this._out.write(b);
@@ -245,23 +243,56 @@ public class Serial2 /*extends Thread*/
                     }
                     else if (length == 91)
                     {
+                        int index = 0;
+                        for(int i = 0; i < length;i++){
+                            if(buffer[i] == 1 && buffer[i + 1] == 0x41 && buffer[i + 2] == 16){
+                                index = i;
+                                break;
+                            }
+                        }
                         // Leddar M16
-                        if (buffer[0] == 1 && buffer[1] == 0x41 && buffer[2] == 16) // slave_id & function code & detectors
+//                        if (buffer[0] == 1 && buffer[1] == 0x41 && buffer[2] == 16) // slave_id & function code & detectors
+//                        {
+//                            if (alisa.CRC.crc16(buffer, 0, 91) == 0) // check CRC16
+//                            {
+//                                System.out.println("length = " + length);
+//                                s += "M16 : distance = ";
+//                                int offset = 3;
+//                                for (int i=0; i<16; i++)
+//                                {
+//                                    int d = (buffer[offset] & 0xFF) + ((buffer[offset+1] & 0xFF) << 8); // [LO][HI]
+//                                    this._distance[i] = d;
+//                                    s += d + ",";
+//                                    offset += 5;
+//                                }                                
+//                                System.out.println(s);
+//                            }     
+//                        } 
+                        if (buffer[index] == 1 && buffer[index + 1] == 0x41 && buffer[index + 2] == 16) // slave_id & function code & detectors
                         {
-                            if (alisa.CRC.crc16(buffer, 0, 91) == 0) // check CRC16
+                            if (alisa.CRC.crc16(buffer, index + 0, index + 91) == 0) // check CRC16
                             {
+                                System.out.println("length = " + length);
                                 s += "M16 : distance = ";
                                 int offset = 3;
                                 for (int i=0; i<16; i++)
                                 {
-                                    int d = (buffer[offset] & 0xFF) + ((buffer[offset+1] & 0xFF) << 8); // [LO][HI]
+                                    int d = (buffer[index + offset] & 0xFF) + ((buffer[index + offset+1] & 0xFF) << 8); // [LO][HI]
                                     this._distance[i] = d;
                                     s += d + ",";
                                     offset += 5;
                                 }                                
                                 System.out.println(s);
+                            }else{
+                                System.out.println("Wrong CRC. (" + length + ")");
                             }     
-                        }                        
+                        }     
+                        else{
+                            System.out.println("Fail Length = " + length);
+                        }
+                    }
+                    else{
+                        System.out.println("Fail Length = " + length);
                     }
                 }                
             //------------------------------------------------------------------    
